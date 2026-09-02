@@ -1,0 +1,7 @@
+*.patch
+
+# npm branch: generated/synced output, not hand-maintained here.
+node_modules/
+arkware-dist/
+arkware-android-flavor.gradle.kts
+vendor/

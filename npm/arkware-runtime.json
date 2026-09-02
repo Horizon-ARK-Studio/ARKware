@@ -1,0 +1,9 @@
+{
+  "//": "The npm branch is a distribution layer, not a copy of ARKware itself -- see README.md's 'Where the code actually lives' section. This file is what keeps 'npm install' from silently drifting: scripts/sync-from-main.js reads `ref` below and pulls files from *that exact commit*, not a moving `main` HEAD, so a package published today can't wake up pointed at code that changed on `main` yesterday.",
+
+  "ref": "d11c387638c6b4a5c35c9d9c63e66c914590b102",
+
+  "description": "main @ 'Add Android CI (build+smoke-test+release) and reference GPL-3.0 explicitly in docs' -- the commit android-project/app/build.gradle.kts's flavor shape (src/lib/android.js) and the LICENSE/README text (scripts/sync-from-main.js) in this package were written and verified against.",
+
+  "//bump": "To move the pin forward: update `ref` to the new main commit SHA (or a tag, once main starts tagging releases), re-run `npm run sync` to pull the new content, re-verify the CLIs still work against it, then commit both the updated ref and whatever vendor/ output review turned up. Never let this drift silently -- a mismatched pin is exactly the 'npm package from yesterday + main from today' failure mode this file exists to prevent."
+}

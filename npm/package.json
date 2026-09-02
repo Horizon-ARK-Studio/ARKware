@@ -1,0 +1,46 @@
+{
+  "name": "@horizon-ark-studio/arkware",
+  "version": "0.1.0",
+  "description": "Package any SPA as a thin native shell. Two CLIs on top of Neutralino: arkware-shell (points a native window at a live URL) and arkware-spa (bundles a local SPA build into an offline native app).",
+  "license": "GPL-3.0-or-later",
+  "author": "Horizon ARK Studio",
+  "homepage": "https://github.com/Horizon-ARK-Studio/ARKware#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Horizon-ARK-Studio/ARKware.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Horizon-ARK-Studio/ARKware/issues"
+  },
+  "type": "commonjs",
+  "bin": {
+    "arkware-spa": "./bin/arkware-spa.js",
+    "arkware-shell": "./bin/arkware-shell.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "scripts/sync-from-main.js",
+    "arkware.config.example.js",
+    "arkware-runtime.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-from-main.js",
+    "prepare": "node scripts/sync-from-main.js || true"
+  },
+  "keywords": [
+    "arkware",
+    "spa",
+    "native-shell",
+    "neutralino",
+    "webview",
+    "pwa",
+    "desktop"
+  ]
+}
