@@ -1,12 +1,21 @@
 name: Publish to npm
 
 # This branch (npm) is the package root -- no android-project/, no docs/,
-# no shared history with main. Tag a version here and this workflow ships
-# it to the npm registry so `npm install @horizon-ark-studio/arkware`
-# resolves without anyone needing the main branch's contents at all.
+# no shared history with main. Every push here publishes to npm so
+# `npm install @horizon-ark-studio/arkware` always tracks the branch tip,
+# no separate tagging step required. (Tag pushes still work too, for
+# workflow_dispatch-style manual dist-tag control -- see below.)
+#
+# Because this fires on every push, not just version bumps: if
+# package.json's version wasn't bumped since the last successful
+# publish, npm rejects the publish (can't republish an existing
+# version) and this job goes red. That's expected -- bump the version
+# as part of the commit you want published.
 
 on:
   push:
+    branches:
+      - npm
     tags:
       - "v*.*.*"
   workflow_dispatch:
