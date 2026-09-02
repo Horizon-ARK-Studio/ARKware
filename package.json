@@ -22,6 +22,7 @@
     "src",
     "templates",
     "scripts/sync-from-main.js",
+    "scripts/ram-dist.sh",
     "arkware.config.example.js",
     "arkware-runtime.json",
     "LICENSE",
