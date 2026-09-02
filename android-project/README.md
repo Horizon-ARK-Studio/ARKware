@@ -1,108 +1,127 @@
-# ARKtube — Android edition (Stage 0)
+# ARKware — Android shell (v1)
 
-Stage 0 scaffold for an Android build of ARKtube. Same philosophy as
-the project as a whole (see the [repo root README](../README.md)):
-**don't redesign YouTube, change the shell around it.** This is a
-normal Android Studio / Gradle project — open it in Android Studio,
-or build it from the command line once you have a JDK:
+Native Kotlin `WebView` shell for the pattern described in the
+[repo root README](../README.md) and
+[`docs/Foundational/PROBLEM-STATEMENT.md`](../docs/Foundational/PROBLEM-STATEMENT.md):
+**don't redesign the target SPA, change the execution model around
+it.** This is a normal Android Studio / Gradle project — open it in
+Android Studio, or build it from the command line once you have a
+JDK:
 
 ```
-./gradlew assembleDebug
+./gradlew assembleYoutubeDebug
 ```
+
+(or `assembleTemplateDebug`, or any other flavor added per below —
+see "Adding a new SPA").
+
+## Config-driven, not hardcoded to one SPA
+
+Every collaborator under `com.horizonarkstudio.arkware` is generic —
+none of it hardcodes a URL, a display name, or a DOM selector
+belonging to any specific SPA. The one thing that *is* per-SPA is a
+Gradle product flavor in `app/build.gradle.kts`, which supplies four
+values:
+
+| Value | Read by | Purpose |
+|---|---|---|
+| `TARGET_URL` | `config.SpaConfig.targetUrl` | the live URL the WebView loads |
+| `SPA_DISPLAY_NAME` | `config.SpaConfig.displayName` | shown in the media notification's subtitle/artist field |
+| `NAG_HIDE_SELECTORS` | `config.SpaConfig.nagHideSelectors` | comma-separated CSS selectors for an "open our app" nag banner, if the SPA has one |
+| `NAG_HIDE_TEXT_MATCHES` | `config.SpaConfig.nagHideTextMatches` | comma-separated button text to match for the same purpose |
+
+Each flavor also sets its own `applicationIdSuffix`, so every SPA this
+shell is built for gets its own installable package:
+**`com.horizonarkstudio.arkware.<spa-name>`**. Two flavors ship in
+this scaffold:
+
+- **`youtube`** — the case ARKtube originally proved on its own,
+  single-purpose Android build, reproduced here as just another
+  flavor (`com.horizonarkstudio.arkware.youtube`, pointed at
+  `m.youtube.com`). Its nag-hide values are left empty on purpose —
+  real selectors have to be read off YouTube's actual markup on a
+  device, not guessed here.
+- **`template`** — a neutral placeholder (`example.com`) to copy when
+  scaffolding a new SPA; also what CI/a bare `./gradlew assembleDebug`
+  falls back to if no flavor is specified.
+
+### Adding a new SPA
+
+Copy the `template` block in `app/build.gradle.kts`'s
+`productFlavors`, rename it, and fill in the four values above. That's
+the entire per-SPA surface area — nothing in `SpaConfig.kt`,
+`ArkScripts.kt`, or any other shell code should ever need touching for
+a new target.
 
 ## What's here
 
-- `app/src/main/java/com/arktube/app/MainActivity.kt` — a `WebView`
-  pointed straight at `https://m.youtube.com` over plain HTTPS.
-  Unlike a bundled-site shell, there's no `assets/` folder and no
-  `WebViewAssetLoader` here — ARKtube's whole point is to wrap the
-  *live* site, not ship a copy of it, so this needs the `INTERNET`
-  permission (declared in `AndroidManifest.xml`) rather than local
-  asset serving. `MainActivity` itself is now a thin Activity-lifecycle
-  shell; the actual behavior lives in single-responsibility
-  collaborators under `com.arktube.app` (see each package's own class
-  docs for the full *why*):
-  - `fullscreen/` — everything about fullscreen video:
-    `FullscreenVideoController` (facade), `SurfaceViewZOrderNeutralizer`
-    (lets the native stretch-to-fill button paint/receive touches above
-    Chromium's hardware-composited fullscreen `SurfaceView`),
-    `ZoomCropStrategy`/`LetterboxZoomCropStrategy` (crops fullscreen
-    video to fill the screen instead of YouTube's letterboxed default,
-    by comparing the video's own intrinsic pixel size to its container
-    and scaling the native customView with `View.scaleX`/`scaleY` — an
-    earlier revision tried this via a CSS transform on the page side
-    instead; that never worked on-device, since once YouTube's player
-    goes fullscreen WebView promotes the video out of the DOM entirely,
-    onto a native View page CSS can no longer reach at all), and
-    `StretchToggleButtonFactory` (a manual override button for content
-    the automatic crop doesn't catch, e.g. letterbox/pillarbox baked
-    into the source video itself rather than added by YouTube's
-    player — see `docs/bugs-caught/`).
-  - `webview/` — `ArkTubeWebViewFactory` (builds the WebView + its
-    settings) and `webview/bridge/` (the `@JavascriptInterface` bridges
-    JS uses to report theme, fullscreen video size, and playback state
-    back to native code); `ArkTubeScripts` holds every script injected
-    into the page.
-  - `theme/` — syncs the status/nav bar color to whichever theme
-    YouTube itself is rendering (its own light/dark toggle, not the
-    phone's system theme).
-  - `layout/LayoutReflowHelper` — forces YouTube's off-screen list
-    items to re-measure after a rotation.
-  - `notifications/` — `NotificationSyncWorker`, a 30-minute WorkManager
-    job that polls the signed-in user's own YouTube notification inbox
-    (via a short-lived headless second `WebView`, reusing the same
-    session cookies rather than a separate OAuth sign-in — see
-    `InboxScraper`'s class doc) and mirrors new items as native Android
-    notifications.
-  - `prefs/` — persisted stretch-to-fill toggle and notification-sync
-    "already seen" state.
-  - `logging/ArkLogger` — app-wide logger; mirrors warnings/errors to
-    an on-device file in addition to Logcat.
+`MainActivity` is a thin Activity-lifecycle shell; the actual behavior
+lives in single-responsibility collaborators under
+`com.horizonarkstudio.arkware` (see each package's own class docs for
+the full *why*):
 
-  Beyond loading the site, this also:
-  - Goes truly edge-to-edge in fullscreen — hides the status bar,
-    nav bar (gesture pill or 3-button), *and* draws under the
-    notch/camera cutout — rather than just hiding the WebView's own
-    chrome and leaving the system bars/cutout inset in place.
-  - Keeps the screen from sleeping/locking for as long as fullscreen
-    video is on screen (`FLAG_KEEP_SCREEN_ON`), and lets it go back
-    to normal once fullscreen ends.
-  - Rotates fullscreen video to match the *video's* own orientation
-    — landscape upload gets a landscape-locked fullscreen, portrait/
-    Shorts gets portrait — the way the YouTube app does, overriding
-    the phone's system auto-rotate lock rather than deferring to it.
-    Restores whatever orientation you were in before once fullscreen
-    ends.
-  - Hides YouTube's own "open app" nag button/banner, since this app
-    already *is* that experience, just wrapped natively.
+- `config/` — `SpaConfig`, the single place that reads the
+  per-flavor `BuildConfig` values described above.
+- `fullscreen/` — everything about fullscreen video:
+  `FullscreenVideoController` (facade), `SurfaceViewZOrderNeutralizer`
+  (lets the native stretch-to-fill button paint/receive touches above
+  Chromium's hardware-composited fullscreen `SurfaceView`),
+  `ZoomCropStrategy`/`LetterboxZoomCropStrategy` (crops fullscreen
+  video to fill the screen instead of a letterboxed default, by
+  comparing the video's own intrinsic pixel size to its container and
+  scaling the native customView), and `StretchToggleButtonFactory` (a
+  manual override button for content the automatic crop doesn't
+  catch).
+- `webview/` — `ArkWebViewFactory` (builds the WebView + its
+  settings) and `webview/bridge/` (the `@JavascriptInterface` bridges
+  JS uses to report theme, fullscreen video size, and playback state
+  back to native code); `ArkScripts` holds every script injected into
+  the page, generic except for the two per-SPA parameters
+  (`SpaConfig`) it's handed at call time.
+- `theme/` — syncs the status/nav bar color to whichever theme the
+  SPA itself is rendering (its own light/dark toggle, not the phone's
+  system theme).
+- `layout/LayoutReflowHelper` — forces the SPA's off-screen content to
+  re-measure after a rotation.
+- `media/` — `MediaSessionCoordinator` (Activity-side binding/JS
+  transport dispatch) and `MediaNotificationFactory` (the
+  `MediaStyle` notification itself).
+- `prefs/` — persisted stretch-to-fill toggle state.
+- `logging/ArkLogger` — app-wide logger; mirrors warnings/errors to
+  an on-device file in addition to Logcat.
 
-  See `docs/bugs-caught/` for the current active-bug list before
-  touching any of the above — several of these behaviors have already
-  hit (and mostly fixed) the same class of bug: a native write that's
-  only safe once per state transition being re-run on every repeated
-  WebView JS report.
+Beyond loading the SPA, this also:
+
+- Goes truly edge-to-edge in fullscreen — hides the status bar,
+  nav bar (gesture pill or 3-button), *and* draws under the
+  notch/camera cutout.
+- Keeps the screen from sleeping/locking for as long as fullscreen
+  video is on screen, and restores normal behavior once fullscreen
+  ends.
+- Rotates fullscreen video to match the *video's* own orientation,
+  overriding the phone's system auto-rotate lock, and restores
+  whatever orientation you were in before once fullscreen ends.
+- Hides the target SPA's own "open app"/install nag, if the active
+  flavor has configured selectors/text for it — a no-op otherwise.
+
+See `../docs/bugs-caught/` for the current active-bug list before
+touching any of the above.
+
 - `MediaPlaybackService.kt` — a foreground service hosting a real
   `MediaSessionCompat` and `MediaStyle` notification, so play/pause/
-  seek/±10s reach the video from *outside* the app entirely: the lock
-  screen, the notification shade, a wired headset's inline remote, a
-  Bluetooth earbud/car-stereo's AVRCP buttons, a paired watch —
-  anything the OS considers a device that can control the active
-  media session. `MEDIA_SESSION_JS` (in `MainActivity.kt`) watches the
-  page's own `<video>` element and reports its play/pause/seek/title/
-  artwork back over a JS bridge, so the session stays truthful even
-  when the user hits YouTube's own on-page controls rather than a
-  native one. Only promoted into the foreground (which is what posts
-  the notification) the first time real playback is reported, not
-  eagerly on launch — there's never a "nothing's playing" notification
-  sitting in the shade. Handles audio focus (pauses on a call/other
-  player taking over) and headphone-unplug, same as any other media
-  app.
-- `ArkTubeApplication.kt` — enables Material You dynamic color on
+  seek/±10s reach the page's `<video>` element from *outside* the app
+  entirely: the lock screen, the notification shade, a wired
+  headset's inline remote, a Bluetooth earbud/car-stereo's AVRCP
+  buttons, a paired watch — anything the OS considers a device that
+  can control the active media session. Only promoted into the
+  foreground the first time real playback is reported, not eagerly on
+  launch. Handles audio focus (pauses on a call/other player taking
+  over) and headphone-unplug, same as any other media app.
+- `ArkwareApplication.kt` — enables Material You dynamic color on
   Android 12+; only affects the splash screen and system bars, since
-  the WebView content is YouTube's own theming.
-- `res/` — a vector-only adaptive icon (dark backdrop, red rounded
-  play button) plus raster PNG fallbacks for API 24-25, which predate
-  adaptive icons.
+  the WebView content is the target SPA's own theming.
+- `res/` — a vector-only adaptive icon plus raster PNG fallbacks for
+  API 24-25, which predate adaptive icons.
 - `../.github/workflows/android-build.yml` (at the repo root, not in
   this directory — GitHub Actions only discovers workflow files at a
   repo's top level) — builds a debug APK, smoke-tests it (install +
@@ -117,32 +136,40 @@ repo's Settings → Secrets and variables → Actions — if you do, the
 workflow decodes and uses them to sign the APK; if not, the job still
 succeeds and gives you an unsigned APK you can sign yourself later.
 
-## Stage 0 scope
+## v1 status
 
-Deliberately narrow — the project stays small until the underlying
-approach is proven:
+Tracked against [`docs/Foundational/ROADMAP.md`](../docs/Foundational/ROADMAP.md)'s
+v1 "done when" list:
 
-- [x] Loads YouTube (mobile web UI, via `m.youtube.com`)
+- [x] Config-driven target SPA via Gradle product flavors, not
+      hardcoded to one site
 - [x] JS / DOM storage / cookies enabled (so login persists)
 - [x] In-app back button walks WebView history before exiting
 - [x] Fullscreen video works (`WebChromeClient` custom-view hooks),
-      true edge-to-edge (status bar, nav bar, and notch/cutout all
-      hidden), cropped to fill rather than letterboxed, oriented to
-      match the video's own shape regardless of the rotation lock,
-      and keeps the screen awake for as long as it's on screen
+      true edge-to-edge, cropped to fill rather than letterboxed,
+      oriented to match the video's own shape regardless of the
+      rotation lock, and keeps the screen awake for as long as it's
+      on screen
 - [x] Media-session/notification playback controls (play/pause/seek
       from the lock screen, notification shade, wired headset, or a
       Bluetooth device's own transport buttons)
-- [ ] Playback verification on a real device
-- [ ] Authentication / session-persistence verification
+- [ ] Playback verification on a real device, per flavor
+- [ ] Authentication / session-persistence verification, per flavor
 - [ ] Picture-in-picture
 - [ ] Any persistent native chrome (nav shell, sidebar)
 - [ ] Download interception, ad-blocking, or other content changes
 
-Everything unchecked is explicitly out of scope for this stage.
+Everything unchecked is explicitly out of scope for this stage. A
+per-SPA notification-inbox poller (what ARKtube's own
+`NotificationSyncWorker` did for YouTube specifically) is not carried
+over here either — it's markup-specific to one SPA rather than a
+generic shell affordance, and isn't part of ARKware v1's scope.
 
-## Why `m.youtube.com` and not `youtube.com`
+## Why not the SPA's desktop layout
 
-A phone-sized WebView showing the desktop site produces a squeezed,
-zoomed-out desktop layout rather than a usable mobile one. Loading
-`m.youtube.com` directly gets YouTube's own mobile web UI instead.
+A phone-sized WebView showing a desktop-only layout produces a
+squeezed, zoomed-out result rather than a usable mobile one.
+`ArkWebViewFactory` identifies as a mobile browser
+(`useWideViewPort`/`loadWithOverviewMode`, and stripping `; wv` from
+the user agent) specifically so a responsive SPA serves its own mobile
+layout instead.

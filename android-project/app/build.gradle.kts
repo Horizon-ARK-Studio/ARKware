@@ -4,15 +4,60 @@ plugins {
 }
 
 android {
-    namespace = "com.arktube.app"
+    namespace = "com.horizonarkstudio.arkware"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.arktube.app"
+        // Never shipped on its own -- each product flavor below turns
+        // this into the real, installable com.horizonarkstudio.arkware.<spa-name>
+        // via applicationIdSuffix, per docs/Foundational/ROADMAP.md's
+        // v1 "config-driven target SPA, not hardcoded to one site".
+        applicationId = "com.horizonarkstudio.arkware"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "0.1.0-stage0"
+        versionName = "0.1.0"
+    }
+
+    // One flavor per target SPA. SpaConfig.kt is the single place
+    // that reads the four values set per flavor below (TARGET_URL,
+    // SPA_DISPLAY_NAME, NAG_HIDE_SELECTORS, NAG_HIDE_TEXT_MATCHES) --
+    // adding a new SPA means adding a new flavor here, never touching
+    // SpaConfig.kt, ArkScripts.kt, or any other shell code.
+    flavorDimensions += "spa"
+    productFlavors {
+        // The case ARKtube originally proved on its own, single-purpose
+        // Android build, reproduced here as just another flavor --
+        // nothing in the generic shell knows this is "the YouTube
+        // build" beyond these four values and the applicationId.
+        create("youtube") {
+            dimension = "spa"
+            applicationIdSuffix = ".youtube"
+            resValue("string", "app_name", "YouTube")
+            buildConfigField("String", "TARGET_URL", "\"https://m.youtube.com\"")
+            buildConfigField("String", "SPA_DISPLAY_NAME", "\"YouTube\"")
+            // Left empty deliberately: real selectors/button text for
+            // YouTube's own "open app" nag have to be read off its
+            // actual markup, not guessed here -- an empty list is a
+            // harmless no-op (see ArkScripts.nagHideJs's own doc),
+            // not an inherited assumption.
+            buildConfigField("String", "NAG_HIDE_SELECTORS", "\"\"")
+            buildConfigField("String", "NAG_HIDE_TEXT_MATCHES", "\"\"")
+        }
+        // Copy this block, rename it, and fill in your own SPA's four
+        // values to scaffold a new ARKware build -- this flavor is the
+        // whole per-SPA surface area, and a working (if generic)
+        // target so `./gradlew assembleDebug` has something to build
+        // before any real SPA-specific flavor is added.
+        create("template") {
+            dimension = "spa"
+            applicationIdSuffix = ".template"
+            resValue("string", "app_name", "ARKware")
+            buildConfigField("String", "TARGET_URL", "\"https://example.com\"")
+            buildConfigField("String", "SPA_DISPLAY_NAME", "\"ARKware\"")
+            buildConfigField("String", "NAG_HIDE_SELECTORS", "\"\"")
+            buildConfigField("String", "NAG_HIDE_TEXT_MATCHES", "\"\"")
+        }
     }
 
     // Signing config (keystore path/passwords) is the project owner's
@@ -76,6 +121,10 @@ android {
 
     buildFeatures {
         viewBinding = false
+        // Required on AGP 8+ (BuildConfig generation is opt-in by
+        // default) -- SpaConfig.kt reads the four per-flavor fields
+        // declared above via BuildConfig.
+        buildConfig = true
     }
 }
 
@@ -85,17 +134,10 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     // Splash screen (AndroidX backport of the Android 12 SplashScreen
     // API) -- gives a consistent splash on API 24+ instead of only
-    // API 31+, via Theme.ArkTubeApp.Starting below.
+    // API 31+, via Theme.ArkwareApp.Starting below.
     implementation("androidx.core:core-splashscreen:1.0.1")
     // MediaSessionCompat/MediaMetadataCompat/PlaybackStateCompat, the
     // MediaStyle notification helper, and MediaButtonReceiver -- see
     // MediaPlaybackService.
     implementation("androidx.media:media:1.7.0")
-    // Periodic background job for NotificationSyncWorker -- polls the
-    // user's own YouTube notification inbox (via a headless WebView
-    // reusing their existing m.youtube.com login) and mirrors new
-    // items as native Android notifications. See that class's own
-    // doc comment for why this is a WorkManager job rather than the
-    // YouTube Data API/OAuth.
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
 }

@@ -1,16 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!--
       Material 3, DayNight-aware, with Material You dynamic color
-      wired up via ArkTubeApplication (DynamicColors.
+      wired up via ArkwareApplication (DynamicColors.
       applyToActivitiesIfAvailable). On Android 12+ this gets
       overridden at runtime with a wallpaper-derived palette;
       everywhere else it falls back to the branded roles below.
 
       NoActionBar because the WebView fills the entire window (see
       MainActivity.kt) - there is no toolbar/chrome, same as the
-      desktop shell has no browser chrome around the YouTube page.
+      desktop shell has no browser chrome around the target SPA's
+      own page.
     -->
-    <style name="Theme.ArkTubeApp" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.ArkwareApp" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
@@ -41,9 +42,9 @@
       (derived from the repo's appIcon.png, see
       mipmap-xxxhdpi/ic_launcher_foreground.png).
     -->
-    <style name="Theme.ArkTubeApp.Starting" parent="Theme.SplashScreen">
+    <style name="Theme.ArkwareApp.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
-        <item name="postSplashScreenTheme">@style/Theme.ArkTubeApp</item>
+        <item name="postSplashScreenTheme">@style/Theme.ArkwareApp</item>
     </style>
 </resources>

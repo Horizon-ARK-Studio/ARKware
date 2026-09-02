@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ARKtube App"
+rootProject.name = "ARKware"
 include(":app")

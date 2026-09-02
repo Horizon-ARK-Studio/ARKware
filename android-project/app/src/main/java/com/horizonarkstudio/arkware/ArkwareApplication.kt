@@ -2,27 +2,29 @@ package com.horizonarkstudio.arkware
 
 import android.app.Application
 import com.horizonarkstudio.arkware.logging.ArkLogger
-import com.horizonarkstudio.arkware.notifications.NotificationSyncWorker
-import com.horizonarkstudio.arkware.notifications.VideoNotificationFactory
 import com.google.android.material.color.DynamicColors
 
 /**
  * Enables Material You dynamic color (wallpaper-derived theming) on
  * Android 12+ (API 31+) devices, app-wide, and owns process-wide
- * startup that has to happen before any Activity or background
- * Worker might run -- most importantly [ArkLogger.init], since
- * [NotificationSyncWorker] can execute via WorkManager on its own
- * schedule even if the user never opens MainActivity in a given
- * process lifetime, and its failures still need to reach the
- * on-device failure log.
+ * startup that has to happen before any Activity might run -- most
+ * importantly [ArkLogger.init], so the failure log is live before any
+ * other component could possibly need it.
  *
  * [DynamicColors.applyToActivitiesIfAvailable] is a no-op below API
  * 31, so this is safe across this app's full minSdk range -- devices
  * that can't do dynamic color just keep the branded fallback palette
  * defined in themes.xml / values-night/themes.xml. In practice this
  * only affects the splash background and system bars, since the
- * WebView content itself is youtube.com's own theming, not this
+ * WebView content itself is the target SPA's own theming, not this
  * app's.
+ *
+ * A background poller mirroring the target SPA's own in-page
+ * notifications (ARKtube's `NotificationSyncWorker`, which read the
+ * user's YouTube notification inbox) is deliberately not carried over
+ * here -- it's YouTube-markup-specific, not a generic shell affordance,
+ * and isn't part of ARKware v1's scope (see
+ * docs/Foundational/ROADMAP.md's v1 "in scope" list at the repo root).
  */
 class ArkwareApplication : Application() {
 
@@ -36,13 +38,6 @@ class ArkwareApplication : Application() {
 
         ArkLogger.track(COMPONENT, "onCreate") {
             DynamicColors.applyToActivitiesIfAvailable(this)
-            // See NotificationSyncWorker's own class doc for what this
-            // actually does (and why it's a WorkManager poll of the
-            // user's existing YouTube login rather than a Data API/OAuth
-            // integration). Both calls are idempotent/safe to repeat on
-            // every process start.
-            VideoNotificationFactory.ensureChannel(this)
-            NotificationSyncWorker.schedule(this)
         }
     }
 

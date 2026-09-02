@@ -2,8 +2,8 @@
     <!-- Fallback (non-dynamic) Material 3 color roles - used on
          devices below Android 12, or when the system hasn't handed
          out a wallpaper-derived palette. Only visible on the splash
-         screen and system bars; the WebView content is YouTube's own
-         theming, not this app's. -->
+         screen and system bars; the WebView content is the target
+         SPA's own theming, not this app's. -->
     <color name="md_theme_primary">#C4001D</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
     <color name="md_theme_primaryContainer">#FFDAD5</color>
@@ -25,6 +25,6 @@
 
     <!-- Splash screen background, matching appIcon.png's own red
          backdrop so the icon feels continuous between splash and app
-         icon. See values/themes.xml's Theme.ArkTubeApp.Starting. -->
+         icon. See values/themes.xml's Theme.ArkwareApp.Starting. -->
     <color name="splash_background">#E60406</color>
 </resources>

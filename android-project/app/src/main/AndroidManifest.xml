@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Unlike an assets-bundled WebView shell, ARKtube's whole point
-         (see the desktop app's docs/PROBLEM-STATEMENT.md) is to wrap
-         the *live* youtube.com/m.youtube.com in a native shell rather
-         than ship a bundled copy of it - so this needs real network
-         access, not just a local asset loader. -->
+    <!-- Unlike an assets-bundled WebView shell, ARKware's whole point
+         (see docs/Foundational/PROBLEM-STATEMENT.md at the repo root)
+         is to wrap the *live* target SPA (whichever one this build's
+         product flavor points SpaConfig.targetUrl at) in a native
+         shell rather than ship a bundled copy of it - so this needs
+         real network access, not just a local asset loader. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Lets MediaPlaybackService run as a foreground service while
@@ -26,12 +27,12 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-        android:name=".ArkTubeApplication"
+        android:name=".ArkwareApplication"
         android:allowBackup="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/Theme.ArkTubeApp">
+        android:theme="@style/Theme.ArkwareApp">
 
         <activity
             android:name=".MainActivity"
@@ -39,7 +40,7 @@
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.ArkTubeApp.Starting">
+            android:theme="@style/Theme.ArkwareApp.Starting">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
