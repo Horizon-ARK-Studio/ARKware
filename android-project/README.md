@@ -173,3 +173,12 @@ squeezed, zoomed-out result rather than a usable mobile one.
 (`useWideViewPort`/`loadWithOverviewMode`, and stripping `; wv` from
 the user agent) specifically so a responsive SPA serves its own mobile
 layout instead.
+
+## CI
+
+[`../.github/workflows/android-build.yml`](../.github/workflows/android-build.yml)
+builds a debug APK per flavor, smoke-tests it (install + launch on a
+headless emulator), and builds a release APK, on every push/PR that
+touches `android-project/`. See that file's header comment for the
+optional signing secrets. Licensed under
+[GPL-3.0-or-later](../LICENSE), same as the rest of the repo.

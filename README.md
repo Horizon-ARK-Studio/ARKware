@@ -64,6 +64,6 @@ what each stage actually has to prove before the next one starts.
 
 ## License
 
-See the repository license for terms. ARKware ships no code or
-assets belonging to any SPA it shells — it is a generic native
-shell, not a redistribution of anything it points at.
+[GNU General Public License v3.0](LICENSE) (GPL-3.0-or-later). ARKware
+ships no code or assets belonging to any SPA it shells — it is a
+generic native shell, not a redistribution of anything it points at.

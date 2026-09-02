@@ -5,6 +5,7 @@
 * [Foundational/CODE-STYLE.md](Foundational/CODE-STYLE.md) -- how we write code, per platform: package-per-concern layout, when a GoF pattern earns its place on Android, the equivalent discipline for the Neutralino/JS shell, and the shared logging convention.
 * [Foundational/SYSTEM-DESIGN-AGREEMENTS.md](Foundational/SYSTEM-DESIGN-AGREEMENTS.md) -- who's allowed to own what, between this shell's native layer and whatever runtime is actually rendering the SPA (`WebView`/Chromium on Android, the OS webview or system Chrome on desktop). Generalizes the same ownership question ARKtube had to answer for `WebView`, this time across three different runtimes instead of one.
 * [bugs-caught/README.md](bugs-caught/README.md) -- active bug tracker. Bugs stay listed here until fixed, tested, and confirmed working.
+* [../LICENSE](../LICENSE) -- ARKware is licensed under the GNU General Public License v3.0 (GPL-3.0-or-later). Every platform shell (Android now, the Neutralino desktop shells and their npm CLI once they land) ships under the same terms.
 
 ---
 
