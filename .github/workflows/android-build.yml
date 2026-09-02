@@ -113,9 +113,9 @@ jobs:
           arch: x86_64
           profile: pixel_5
           disable-animations: true
-          script: |
-            package=$(cd android-project && ./gradlew -q "printApplicationId${{ matrix.flavor }}Debug" 2>/dev/null || echo "com.horizonarkstudio.arkware.${{ matrix.flavor }}")
-            adb install -r "${{ steps.apk.outputs.path }}"
-            adb shell monkey -p "$package" -c android.intent.category.LAUNCHER 1
-            sleep 5
+          script: >
+            package=$(cd android-project && ./gradlew -q "printApplicationId${{ matrix.flavor }}Debug" 2>/dev/null || echo "com.horizonarkstudio.arkware.${{ matrix.flavor }}") &&
+            adb install -r "${{ steps.apk.outputs.path }}" &&
+            adb shell monkey -p "$package" -c android.intent.category.LAUNCHER 1 &&
+            sleep 5 &&
             adb shell dumpsys activity activities | grep -q "$package" || (echo "::error::$package did not come to the foreground after launch" && exit 1)
