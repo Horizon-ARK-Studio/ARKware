@@ -1,6 +1,6 @@
 {
   "name": "@horizon-ark-studio/arkware",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Package any SPA as a thin native shell. Two CLIs on top of Neutralino: arkware-shell (points a native window at a live URL) and arkware-spa (bundles a local SPA build into an offline native app).",
   "license": "GPL-3.0-or-later",
   "author": "Horizon ARK Studio",
