@@ -32,8 +32,11 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Ensure npm supports OIDC trusted publishing (needs 11.5.1+)
+        run: npm install -g npm@latest
 
       - name: Verify tag matches package.json version
         if: startsWith(github.ref, 'refs/tags/')
@@ -53,8 +56,13 @@ jobs:
         run: npm install --ignore-scripts
 
       - name: Publish
+        # Trusted Publishing (OIDC) -- no token. npm exchanges the
+        # id-token this job's `permissions` block grants for a short-lived
+        # publish credential, matched against the Trusted Publisher entry
+        # configured on the package at npmjs.com (org/repo/workflow
+        # filename must match this repo exactly). Requires the package to
+        # already exist on the registry -- see README for the one-time
+        # manual bootstrap publish this replaces.
         run: >
           npm publish --access public --provenance
           ${{ github.event.inputs.dist_tag && format('--tag {0}', github.event.inputs.dist_tag) || '' }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
