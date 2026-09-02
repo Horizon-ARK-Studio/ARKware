@@ -88,7 +88,7 @@ jobs:
         id: apk
         run: |
           apk=$(find app/build/outputs/apk -iname "*${{ matrix.flavor }}*debug*.apk" | head -n1)
-          echo "path=$apk" >> "$GITHUB_OUTPUT"
+          echo "path=$(realpath "$apk")" >> "$GITHUB_OUTPUT"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -114,7 +114,7 @@ jobs:
           profile: pixel_5
           disable-animations: true
           script: |
-            package=$(./gradlew -q "printApplicationId${{ matrix.flavor }}Debug" 2>/dev/null || echo "com.horizonarkstudio.arkware.${{ matrix.flavor }}")
+            package=$(cd android-project && ./gradlew -q "printApplicationId${{ matrix.flavor }}Debug" 2>/dev/null || echo "com.horizonarkstudio.arkware.${{ matrix.flavor }}")
             adb install -r "${{ steps.apk.outputs.path }}"
             adb shell monkey -p "$package" -c android.intent.category.LAUNCHER 1
             sleep 5
