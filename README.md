@@ -132,6 +132,29 @@ snippet shaped like the existing `youtube`/`template` flavors in
 `android-project/app/build.gradle.kts` — paste it in, add the flavor
 name to the CI matrix, push, and CI builds the APK.
 
+## Publishing
+
+CI publishes via npm Trusted Publishing (OIDC) — see
+[`.github/workflows/npm-publish.yml`](.github/workflows/npm-publish.yml).
+No `NPM_TOKEN` is stored in this repo; the workflow exchanges its GitHub
+Actions OIDC identity for a short-lived publish credential, matched
+against the Trusted Publisher entry configured on the package at
+npmjs.com (org `Horizon-ARK-Studio`, repo `ARKware`, workflow
+`npm-publish.yml`).
+
+npm cannot attach a Trusted Publisher to a package that doesn't exist
+yet, so this only works because a one-time manual bootstrap publish
+already happened:
+
+```
+npm login
+npm publish --access public
+```
+
+That step is already done for `@horizon-ark-studio/arkware` — it does
+not need to be repeated. It would only apply again if publishing under
+a brand-new, never-before-published package name.
+
 ## License
 
 [GPL-3.0-or-later](LICENSE), same as the rest of ARKware. The
