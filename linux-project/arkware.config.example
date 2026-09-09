@@ -1,0 +1,17 @@
+# ARKware Linux shell config.
+# Copy to `arkware.config` (next to the built binary, or pass a path
+# as argv[1]) and fill in the SPA this build should point at.
+#
+# Every value here can also be set/overridden per-run via
+# ARKWARE_TARGET_URL / ARKWARE_DISPLAY_NAME environment variables --
+# useful for testing a second SPA without touching this file.
+
+target_url=https://example.com
+display_name=Example App
+
+# Comma-separated. Leave blank to skip nag-hiding entirely for this
+# SPA (see docs/Foundational/PROBLEM-STATEMENT.md and SpaConfig.kt's
+# nagHideSelectors for what these are for on Android -- not yet wired
+# into the Linux bridge, kept here so the config shape matches).
+nag_hide_selectors=
+nag_hide_text_matches=
