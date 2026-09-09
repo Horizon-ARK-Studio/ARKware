@@ -31,9 +31,8 @@ generalized from ARKtube's proven pattern rather than YouTube-specific.
 **Explicitly deferred:**
 * anything desktop
 * any SPA-provided native bridge/API beyond what ARKtube already
-  needed (media state, title/artwork) -- a generic bridge surface is
-  a v2+ conversation once there's a second runtime to design it
-  against
+  needed (media state, title/artwork) -- see "Native bridge surface"
+  below for candidates, none of them scheduled yet
 
 **Done when (mirrors ARKtube `PROBLEM-STATEMENT.md` Section 12, generalized):**
 * the shell installs, launches, and reaches a usable state for an
@@ -51,73 +50,102 @@ generalized from ARKtube's proven pattern rather than YouTube-specific.
 
 ---
 
-## v2 -- Desktop, Neutralino window mode
+## v2 -- Desktop, Linux native C shell
 
-**Goal:** desktop capability via Neutralino, using its default window
-mode -- the OS-native webview (WebView2 / WebKit / WebKitGTK) -- with
-no dependency on system Chrome being installed.
+**Goal:** desktop capability on Linux via a small, native C shell that
+embeds WebKitGTK directly -- no Neutralino, no bundled runtime, no
+dependency on system Chrome being installed. Desktop is no longer
+staged as one cross-platform runtime with modes; it's one native shell
+per OS, proven one at a time, and Linux is first because it's the
+simplest case to establish the pattern on.
 
 **In scope:**
-* Neutralino-based shell, same config-driven target-SPA model as v1
-* window chrome, tray/dock integration, install/update mechanics --
+* native C shell (GTK + WebKitGTK), same config-driven target-SPA
+  model as v1 -- a config file or equivalent input names the target
+  SPA, nothing about a specific SPA is hardcoded into the shell
+* window chrome, tray integration, install/update mechanics --
   whatever a desktop user expects an installed app to have that a
   browser tab doesn't
-* per-OS verification of which native affordances are actually
-  missing from each OS-native webview's web layer (see
-  `PROBLEM-STATEMENT.md` Section 5) -- this has to be checked per
-  engine, not assumed from Android or from one desktop OS to another
+* verification of which native affordances are actually missing from
+  WebKitGTK's own web layer (see `PROBLEM-STATEMENT.md` Section 5) --
+  checked against real WebKitGTK behavior, not assumed from Android
+* applying `SYSTEM-DESIGN-AGREEMENTS.md`'s ownership test to WebKitGTK
+  specifically, the same way it was applied to Android `WebView`
 
 **Explicitly deferred:**
-* chrome mode (v3) -- v2 should exhaust what window mode can do
-  before reaching for it
-* any feature whose only known implementation path requires system
-  Chrome specifically -- that's the definition of a v3 candidate, not
-  a v2 workaround
+* Windows and macOS -- each is its own future, currently unstaged
+  stage (see below), not a v3/v4 slot already committed to a shape
+* any feature whose only known implementation path requires
+  delegating to a system browser instead of the embedded webview --
+  no such fallback mode is currently planned; it would only get added
+  as its own stage, for a specific documented gap
+* the "Native bridge surface" opt-in APIs listed below -- reference
+  material for later, not v2 scope
 
 **Done when:**
-* the shell installs and runs on Windows, macOS, and Linux via
-  Neutralino window mode
-* session/login state persists across restarts on all three
+* the shell installs and runs on Linux via the native C shell
+* session/login state persists across restarts (whatever the SPA
+  itself already persists via cookies/localStorage)
 * window chrome (resize, minimize/maximize, close, tray if
   applicable) behaves like a native app, not a browser window
-* any native affordance gap found per-OS is documented (which OS,
-  which webview engine, what's missing) before being worked around --
-  not patched blind
-* no outstanding entries in `bugs-caught/` for the desktop window-mode
-  shell, on any of the three OSes
+* any native affordance gap found in WebKitGTK is documented (what's
+  missing, why) before being worked around -- not patched blind
+* no outstanding entries in `bugs-caught/` for the Linux shell
 
 ---
 
-## v3 -- Desktop, Neutralino chrome mode
+## Windows, macOS (desktop) -- not yet staged
 
-**Goal:** cover SPA features that window mode's OS-native webview
-genuinely cannot support, by delegating to the system's already-
-installed Chrome/Chromium (launched via `--app`) instead of an
-embedded webview -- no bundled runtime, no bundled browser engine.
+No v3/v4 shape is committed to yet. Each will become its own numbered
+stage, with its own "in scope"/"done when" breakdown derived from
+real Linux findings and each platform's actual native webview (WebView2
+on Windows, WKWebView on macOS), once v2 is far enough along to derive
+useful lessons from -- not speculated into a plan ahead of that,
+consistent with `CODE-STYLE.md` Section 4's own rule against reaching
+for structure the problem hasn't asked for yet.
 
-**In scope:**
-* chrome-mode shell path, reached only for specific, documented
-  feature gaps carried over unresolved from v2
-* explicit detection/handling for the case where the system has no
-  Chrome/Chromium installed -- what the shell does then has to be a
-  deliberate decision, not silent failure
+---
 
-**Explicitly deferred / non-goal:**
-* bundling Chromium -- chrome mode is specifically "use what's already
-  on the system," not "ship our own copy"; if that stops being viable
-  (e.g. install prevalence too low to rely on), that's a reason to
-  revisit the approach, not to quietly start bundling
-* using chrome mode as the *default* desktop path -- it stays a
-  targeted escalation from v2, not a replacement for it
+## Native bridge surface (opt-in) -- future reference, not yet scheduled
 
-**Done when:**
-* the shell can launch and control system Chrome in `--app` mode
-  reliably across the same three OSes
-* the specific v2 feature gaps that motivated v3 are confirmed fixed
-  under chrome mode
-* absence of a system Chrome/Chromium install is handled explicitly
-  (documented fallback or clear failure, not silent breakage)
-* no outstanding entries in `bugs-caught/` for the chrome-mode shell
+A reference list for a later stage, not committed to v2 or any other
+numbered version yet. Capacitor exposes a broad set of native APIs to
+the SPAs it shells; most of that surface is out of scope for ARKware's
+"only what the web layer structurally can't reach itself" philosophy,
+but a subset are genuinely native-only affordances (no web-platform
+equivalent, or one with poor WebView/WebKitGTK support) that would fit
+the same shell/bridge pattern the Android build already uses for media
+state and orientation:
+
+* **Splash screen** -- covers the load-time gap before the webview has
+  content, same category as v1's existing fullscreen/rotation work.
+* **Keyboard insets** -- resize/inset behavior for input-heavy SPAs,
+  a real embedded-webview gap on both Android and desktop.
+* **Push / local notifications** -- OS-level notification delivery a
+  browser tab structurally can't do.
+* **Share** -- native share sheet, more reliable than the Web Share
+  API's inconsistent WebView support.
+* **Haptics** -- no web equivalent at all.
+* **Privacy screen** -- hides app content in the OS app-switcher/
+  recents view, useful for SPAs handling sensitive data.
+* **Browser / in-app browser** -- opening OAuth or external links
+  without losing shell/session state.
+* **Preferences** -- native key-value storage that survives a
+  WebView/webview data-clear the way `localStorage` doesn't; the same
+  role the Android `ForceFillPreference` flavor already plays manually
+  for one setting.
+* **App-state events** -- foreground/background and deep-link hooks,
+  which would slot into the same bridge-package pattern
+  (`webview/bridge/` on Android, `webview_bridge/` on desktop) as
+  `MediaPlaybackBridge`, `OrientationBridge`, and `ThemeBridge`
+  already do.
+
+Each of these is opt-in per `arkware.config.js`-equivalent config, per
+the project's existing "never require the SPA to know it's running
+inside ARKware unless it asks" principle (`PROBLEM-STATEMENT.md`
+Section 1). None of them get built speculatively; each becomes real
+scope only once a specific stage's own roadmap section commits to it,
+same as everything else in this document.
 
 ---
 

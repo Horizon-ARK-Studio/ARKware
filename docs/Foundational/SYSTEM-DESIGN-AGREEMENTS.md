@@ -17,8 +17,8 @@ runtimes with different internals:
 | Stage | Runtime | Same question, different internals |
 |---|---|---|
 | v1 | Android `WebView` (Chromium) | Answered by ARKtube already -- see below |
-| v2 | OS-native webview (WebView2 / WebKit / WebKitGTK) via Neutralino window mode | Not yet answered -- three different engines, three separate answers needed |
-| v3 | System Chrome/Chromium via Neutralino chrome mode (`--app`) | Not yet answered -- a launched external process, not an embedded runtime; the ownership shape itself is different, not just the specifics |
+| v2 | WebKitGTK, embedded via a native C shell (Linux) | Not yet answered |
+| unstaged | Whatever Windows and macOS each end up embedding (WebView2 / WKWebView) via their own native C shells | Not yet answered, and not yet started -- each is its own future stage, engine choice included |
 
 ---
 
@@ -26,11 +26,10 @@ runtimes with different internals:
 
 > **The runtime rendering the SPA is not a passive surface this shell
 > controls. It is an independent system with its own opinions about
-> media, layout, focus, and (for v3) its own process lifecycle. Every
-> native subsystem in this shell must either (a) defer entirely to
-> what the runtime already owns, or (b) own something the runtime
-> provably does not touch -- never (c) hold a second, competing claim
-> over the same resource.**
+> media, layout, and focus. Every native subsystem in this shell must
+> either (a) defer entirely to what the runtime already owns, or (b)
+> own something the runtime provably does not touch -- never (c) hold
+> a second, competing claim over the same resource.**
 
 ARKtube's own framing of why this is a *system design* bug class, not
 just "bugs" (two well-behaved systems both claiming the same
@@ -38,32 +37,35 @@ resource, each reacting to the other's actions as external reality)
 applies verbatim here. See ARKtube's `SYSTEM-DESIGN-AGREEMENTS.md`
 for the original BUG-0001/BUG-0004 case studies -- they're the
 concrete evidence for why this rule exists at all, and they're
-Android-`WebView`-specific evidence that a v2/v3 contributor should
-still read before assuming their own runtime is somehow exempt.
+Android-`WebView`-specific evidence that a desktop-shell contributor
+should still read before assuming their own runtime is somehow exempt.
 
 ---
 
-## Why this doesn't port for free to v2/v3
+## Why this doesn't port for free to v2 and beyond
 
 It would be a mistake to read ARKtube's `SYSTEM-DESIGN-AGREEMENTS.md`
 and assume its *conclusions* (e.g. "never hold a native
-`AudioFocusRequest`, WebView already owns it") transfer to Neutralino
-window/chrome mode. What transfers is the *method* -- the ownership
-test below -- not the specific answers, because:
+`AudioFocusRequest`, WebView already owns it") transfer to WebKitGTK on
+Linux, or to whatever Windows and macOS embed later. What transfers is
+the *method* -- the ownership test below -- not the specific answers,
+because:
 
-* **WebView2, WebKit, and WebKitGTK are three different engines with
-  three different internal ownership models.** Whether a given engine
-  already owns, say, OS media-session integration the way Chromium's
-  `WebView` does is a per-engine empirical question, not something
-  ARKtube's Android findings can answer by analogy.
-* **Chrome mode (v3) isn't an embedded runtime at all.** It's a
-  separate OS process this shell launches and has much looser control
-  over. Some resources v2 might contest with an embedded webview (window
-  chrome behavior, for instance) may not be a shared-ownership question
-  in chrome mode at all -- they may simply belong entirely to the
-  launched Chrome process, with the shell owning nothing there beyond
-  the initial launch. That's a different *shape* of ownership question,
-  not a stricter or looser version of v1/v2's.
+* **WebKitGTK, WebView2, and WKWebView are three different engines
+  with three different internal ownership models.** Whether a given
+  engine already owns, say, OS media-session integration the way
+  Chromium's `WebView` does is a per-engine empirical question, not
+  something ARKtube's Android findings -- or, once it exists, v2's
+  Linux findings -- can answer for the others by analogy.
+* **Each platform's native C shell is a separate codebase, not a
+  shared abstraction layer with per-mode branches.** There's no single
+  "desktop shell" whose window/chrome-mode split needs re-deriving
+  once per pair of modes; there's one small C program per OS, each
+  running the ownership test below against its own embedded engine
+  from scratch. A future stage delegating to a system browser instead
+  of an embedded webview -- if one ever gets added -- would be its own
+  additional ownership question again, not a variant of an existing
+  one.
 
 ---
 
@@ -92,9 +94,9 @@ process/window lifecycle):
 This test is the actual reusable artifact from ARKtube's experience.
 The per-runtime answers it produces belong in each stage's own notes
 as they're discovered (v1 can cite ARKtube's existing findings
-directly; v2's per-engine findings and v3's process-boundary findings
-still need to be run through this test from scratch once there's real
-code to test it against).
+directly; v2's WebKitGTK findings, and whatever Windows/macOS turn up
+once their stages start, still need to be run through this test from
+scratch once there's real code to test each against).
 
 ---
 

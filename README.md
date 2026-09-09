@@ -44,8 +44,19 @@ The SPA, installed.
 | Stage | Platform | Shell | Status |
 |---|---|---|---|
 | **v1** | Android | Native Kotlin, `WebView` + GoF patterns where they earn their place | 🚧 working stage — code in, active testing |
-| **v2** | Desktop | [Neutralino](https://neutralino.js.org/) **window mode** — OS-native webview (WebView2 / WebKit / WebKitGTK) | docs only |
-| **v3** | Desktop | Neutralino **chrome mode** — delegates to the system's installed Chrome/Chromium (`--app`), no bundled runtime, used only where window mode structurally can't do something the SPA needs | docs only |
+| **v2** | Linux (desktop) | Native C shell, GTK + WebKitGTK embedding the OS's own webview — no bundled runtime | docs only |
+| **v3+** | Windows, macOS (desktop) | Native C shell per platform, same discipline as Linux, engine/toolkit TBD per OS (WebView2 on Windows; WKWebView, which needs some Objective-C interop, on macOS) | not yet staged |
+
+Desktop is no longer planned around Neutralino. Each desktop OS gets
+its own small, native C shell instead of a shared cross-platform
+runtime — see
+[`docs/Foundational/PROBLEM-STATEMENT.md`](docs/Foundational/PROBLEM-STATEMENT.md#2-why-not-electron--capacitor--a-full-rewrite)
+for why owning the shell/webview boundary directly, rather than sitting
+on top of another abstraction layer, was already this project's
+argument against Electron and Capacitor — Neutralino was the one
+exception to that argument, and it no longer is one. Linux is first
+because it's the simplest case to prove the pattern on before deciding
+anything for Windows or macOS.
 
 iOS is explicitly out of scope — see
 [`docs/Foundational/PROBLEM-STATEMENT.md`](docs/Foundational/PROBLEM-STATEMENT.md#non-goals)
@@ -60,14 +71,21 @@ shell has code and is in active testing against the "done when"
 bar in [`docs/Foundational/ROADMAP.md`](docs/Foundational/ROADMAP.md#v1----android-native-kotlin-shell);
 see [`android-project/`](android-project) and
 [`docs/bugs-caught/README.md`](docs/bugs-caught/README.md) for what's
-still outstanding before v1 is called done. v2/v3 (desktop) remain
-docs-only. See [`docs/README.md`](docs/README.md) for the full index.
+still outstanding before v1 is called done. Desktop (v2+) remains
+docs-only, and is now planned as a native C shell per platform
+(Linux first) instead of Neutralino — see the Platforms table above
+and [`docs/Foundational/ROADMAP.md`](docs/Foundational/ROADMAP.md) for
+the current staging. See [`docs/README.md`](docs/README.md) for the
+full index.
 
 An npm packaging + CLI layer for this project also exists on the
 [`npm` branch](https://github.com/Horizon-ARK-Studio/ARKware/tree/npm)
 (`@horizon-ark-studio/arkware`) — a separate ecosystem-specific
 distribution layer, not a second copy of this code; see that branch's
-README for how it stays in sync with `main`.
+README for how it stays in sync with `main`. That branch's CLIs
+currently target Neutralino for desktop packaging, which now diverges
+from `main`'s direction above — reconciling that is follow-up work on
+the `npm` branch itself, not done as part of this change.
 
 ---
 

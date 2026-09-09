@@ -1,7 +1,8 @@
 # ARKware -- How We Write Code
 
 **Status:** Living document
-**Scope:** `android-project/` (Kotlin) and `desktop-project/` (Neutralino/JS)
+**Scope:** `android-project/` (Kotlin) and, once code exists, a
+native C project per desktop platform -- `linux-project/` first
 
 Same instinct as ARKtube's `CODE-STYLE.md`, carried over deliberately:
 this isn't a brace-placement guide. It's the structural decisions
@@ -26,59 +27,64 @@ reading like "the YouTube version of X," that's the signal it still
 has ARKtube-specific assumptions baked in that need to become
 config-driven instead.
 
-For the desktop shell (v2/v3), the same discipline applies even
-though JS doesn't enforce it structurally the way Kotlin classes do.
-A concern gets its own module for the same reason a concern gets its
-own Kotlin package:
+For the desktop shell, the same discipline applies even though C
+doesn't enforce it structurally the way Kotlin classes do -- a
+translation unit gets its own file for the same reason a concern gets
+its own Kotlin package. Linux (v2) is the only desktop platform with a
+real stage behind it, so this is the first cut, not a cross-platform
+layout speculated ahead of any of it existing:
 
 ```
-src/
-├── main.js                 -- entry point + wiring only
-├── shell/                   -- window chrome, tray/dock, lifecycle
-├── webview-bridge/           -- SPA <-> native bridge (mirrors webview/bridge/)
-├── media/                     -- OS media-session integration, if applicable
-├── mode/
-│   ├── window-mode.js        -- v2: OS-native webview specifics
-│   └── chrome-mode.js        -- v3: system Chrome/--app specifics
-├── config/                    -- target-SPA configuration
-└── logging/                   -- shared logging convention, see Section 3
+linux-project/
+└── src/
+    ├── main.c              -- entry point + wiring only
+    ├── shell/                -- window chrome, tray, lifecycle (GTK)
+    ├── webview_bridge/        -- SPA <-> native bridge (mirrors webview/bridge/)
+    ├── media/                  -- OS media-session integration (MPRIS), if applicable
+    ├── config/                  -- target-SPA configuration
+    └── logging/                  -- shared logging convention, see Section 3
 ```
 
-`mode/window-mode.js` and `mode/chrome-mode.js` living side by side,
-each owning only its own runtime's specifics, is the desktop
-equivalent of never letting `MainActivity.kt` know about both
-fullscreen math and media-session binding in the same file. Shared
-logic between the two modes belongs in `shell/`, not duplicated into
-both, and not left in whichever of the two files was written first.
+When Windows and macOS get their own stages, each gets its own project
+directory (`windows-project/`, `macos-project/`) with this same shape
+re-derived against that platform's actual constraints -- not a shared
+`desktop-project/` with per-OS branches inside it. `webview_bridge/`
+existing per-platform, each wrapping the same shell-facing bridge
+concept ARKtube's `webview/bridge/` already proved on Android, is the
+one convention worth carrying forward now; the rest of the layout is
+free to diverge once a second platform's C code actually exists to
+compare against.
 
 ---
 
 ## 2. Reach for a Pattern When It Names a Real Constraint, Not by Default
 
-Same rule as ARKtube: a GoF pattern on the Kotlin side, or an
-equivalent structural device on the JS side, earns its place because
+Same rule as ARKtube: a GoF pattern on the Kotlin side, or the closest
+equivalent structural device C actually has (a function-pointer table
+standing in for an interface, for instance), earns its place because
 it's the accurate name for a constraint the code already hit -- never
 because "that's how you'd structure this in general."
 
-Two constraints already known to apply, carried directly from
+One constraint already known to apply, carried directly from
 ARKtube's own reasoning:
 
 * **A single global failure log, reachable without threading a
-  reference through every constructor/module.** ARKtube used a
-  Kotlin `object` Singleton for `ArkLogger` for exactly this reason.
-  The desktop equivalent is a single shared logging module, imported
+  reference through every function/module.** ARKtube used a Kotlin
+  `object` Singleton for `ArkLogger` for exactly this reason. The C
+  equivalent is a single shared logging translation unit, linked in
   wherever needed -- same justification, no ceremony beyond what the
   constraint actually calls for.
-* **Runtime-specific behavior behind a shared interface.** v2's
-  window mode and v3's chrome mode need to expose the same shell-facing
-  operations (show/hide window, enter/exit fullscreen where
-  applicable, etc.) through genuinely different mechanics underneath.
-  That's a Strategy-shaped constraint on the desktop side, the same
-  way ARKtube reached for a named pattern only once a real
-  one-interface/many-implementations situation existed -- not before.
 
-Any other pattern gets added the same way: identify the constraint
-first, name it after, not before.
+There isn't yet a known one-interface/many-implementations constraint
+on the desktop side -- that was specifically the Neutralino
+window-mode/chrome-mode split, and it no longer exists now that
+desktop is one native C shell per platform rather than one shell with
+two runtime modes. A Strategy-shaped need (a function-pointer table
+behind a shared header, in C terms) may well resurface once a second
+desktop platform's shell exists and turns out to share real logic with
+Linux's -- that's exactly the kind of thing to name once it's actually
+hit, not before. Any pattern gets added the same way: identify the
+constraint first, name it after, not before.
 
 ---
 
@@ -90,13 +96,11 @@ that never surface as a normal crash. The same risk exists here,
 across more runtimes:
 
 * Android v1 reuses `ArkLogger`'s convention directly.
-* Desktop v2/v3 needs an equivalent for its own two most likely
-  silent-failure points: the SPA-bridge JS boundary, and mode
-  switching/launch failures (a missing system Chrome install in
-  chrome mode being the clearest example -- see `ROADMAP.md`'s v3
-  "done when" criteria).
+* Desktop v2 (Linux) needs an equivalent for its own most likely
+  silent-failure point: the SPA-bridge boundary between the C shell
+  and the embedded WebKitGTK view.
 
-The specific logging implementation for desktop isn't decided yet --
+The specific logging implementation for Linux isn't decided yet --
 that's a v2 decision once there's real bridge code to log around, not
 a Stage 0 one.
 
@@ -105,9 +109,9 @@ a Stage 0 one.
 ## 4. This Document Grows With the Code, Not Ahead of It
 
 Sections 1-3 cover what's already a known, real constraint (from
-ARKtube's proven experience, or from the shape v2/v3 already imply).
+ARKtube's proven experience, or from the shape v2 already implies).
 Anything else -- test conventions, build tooling specifics, a
-concrete first cut at the desktop bridge's package layout -- gets
+concrete first cut at the desktop bridge's file layout -- gets
 added here once v1/v2 code exists to derive it from, not speculated
 into this document ahead of time. Consistent with `docs/README.md`'s
 own philosophy: don't reach for structure the problem hasn't asked

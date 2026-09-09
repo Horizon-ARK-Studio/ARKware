@@ -17,7 +17,7 @@ Template:
 ### BUG-XXXX: Short description
 - **Status:** `UNFIXED`
 - **Found:** YYYY-MM-DD
-- **Stage:** `v1 (Android) | v2 (desktop window mode) | v3 (desktop chrome mode)`
+- **Stage:** `v1 (Android) | v2 (desktop, Linux)`
 - **Location:** `path/to/file:line`
 - **Severity:** `Critical | High | Medium | Low`
 - **Description:**
@@ -66,7 +66,7 @@ against it.)_
 5. Do not keep a separate "Fixed Bugs" section here. Git history, commits, PRs, or changelogs should provide the historical record.
 6. If a supposedly fixed bug reappears, create a new entry with a new bug ID and reference the previous fix in `Notes`.
 7. Keep entries focused on observable failures rather than vague concerns or speculative cleanup.
-8. Tag every entry with **Stage** (`v1`/`v2`/`v3`) -- ARKware spans three runtimes, and a bug's runtime is part of diagnosing it, not incidental.
+8. Tag every entry with **Stage** (`v1`, `v2`, and whichever later stage a bug belongs to once one exists) -- ARKware spans multiple runtimes, and a bug's runtime is part of diagnosing it, not incidental.
 
 ---
 
@@ -100,7 +100,7 @@ BUG REMOVED
 ### BUG-XXXX: Short description
 - **Status:** `UNFIXED`
 - **Found:** YYYY-MM-DD
-- **Stage:** `v1 | v2 | v3`
+- **Stage:** `v1 | v2 | ...`
 - **Location:** `path/to/file:line`
 - **Severity:** `Critical | High | Medium | Low`
 

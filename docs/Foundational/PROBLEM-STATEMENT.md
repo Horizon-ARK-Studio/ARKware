@@ -3,8 +3,8 @@
 ## Design Document
 
 **Status:** Experimental
-**Target:** Android (v1), Desktop via Neutralino (v2/v3)
-**Shells:** Native Kotlin `WebView` (Android); Neutralino window mode, OS-native webview (desktop v2); Neutralino chrome mode, system Chrome/Chromium (desktop v3)
+**Target:** Android (v1), Desktop as a native C shell per platform, Linux first (v2), Windows/macOS unstaged
+**Shells:** Native Kotlin `WebView` (Android); native C shell embedding the OS's own webview, one platform at a time (GTK + WebKitGTK for Linux; Windows/macOS toolkits not yet decided)
 **Input:** Any SPA -- a URL, or a locally-served build, that the shell points a webview/runtime at
 **Primary goal:** Make an arbitrary SPA behave like a proper installed native app -- without redesigning it, and without paying an Electron/Capacitor-sized runtime tax to get there.
 
@@ -36,10 +36,12 @@ The guiding principle carried over unchanged from ARKtube:
 
 What's different from ARKtube is scope: ARKtube committed to one
 SPA and one runtime. ARKware has to keep that same discipline while
-supporting an arbitrary SPA across three different underlying
-runtimes (Android `WebView`, desktop OS-native webview, desktop
-system Chrome). Section 4 covers why that isn't three unrelated
-shells that happen to share a name.
+supporting an arbitrary SPA across a growing set of underlying
+runtimes — Android `WebView`, and a native C shell per desktop OS,
+each embedding that OS's own webview engine (WebKitGTK on Linux;
+Windows and macOS undecided until their own stages start). Section 4
+covers why that isn't just a pile of unrelated shells that happen to
+share a name.
 
 ---
 
@@ -53,10 +55,11 @@ anyone familiar with existing app-shell tooling will ask.
   control and don't mind the footprint. It's the opposite of what
   ARKware is for: every megabyte and every resident process Electron
   ships is exactly the weight ARKtube's low-end-device argument (see
-  ARKtube `PROBLEM-STATEMENT.md` Section 2) was built to avoid.
-  Neutralino's own pitch -- use whatever webview the OS already has,
-  ship a small binary, no bundled browser engine -- is the desktop
-  half of the same bet ARKtube already made on Android.
+  ARKtube `PROBLEM-STATEMENT.md` Section 2) was built to avoid. A
+  small native C shell that embeds whatever webview the OS already
+  has -- WebKitGTK on Linux, and whichever engine each future platform
+  already ships -- is the desktop half of the same bet ARKtube already
+  made on Android: no bundled browser engine, no runtime tax.
 * **Capacitor is a dependency this project deliberately isn't taking
   on.** Not because it's bad tooling -- because ARKware's whole reason
   to exist is owning the shell/runtime boundary directly (see Section
@@ -65,7 +68,19 @@ anyone familiar with existing app-shell tooling will ask.
   fullscreen, who owns the media session, who owns window chrome --
   become Capacitor's problems to have already solved correctly for
   every one of its supported runtimes, which is exactly the kind of
-  claim Section 4 says can't be taken on faith.
+  claim Section 4 says can't be taken on faith. This project used to
+  carve out one exception to that stance for desktop, via Neutralino;
+  it no longer does, for the same reason it never carved one out for
+  Capacitor -- a cross-platform runtime abstraction is still a claim
+  about every engine it wraps that ARKware would rather verify itself,
+  one platform at a time, than take on faith. A handful of opt-in
+  bridge APIs Capacitor exposes (splash screen, keyboard insets, push/
+  local notifications, share, haptics, privacy screen, an in-app
+  browser, native key-value preferences, app-state events) are still
+  worth having as an ARKware-owned equivalent eventually -- see
+  `ROADMAP.md`'s "Native bridge surface" section -- the disagreement
+  is with depending on Capacitor's runtime, not with the idea that
+  those affordances are useful.
 * **A full native rewrite of the SPA** throws away the actual
   argument for this whole approach: the SPA is already a complete,
   maintained product. ARKware's job is to stop competing with it and
@@ -80,8 +95,8 @@ This project is not:
 * a new frontend framework, or a redesign tool for the SPAs it shells
 * a general-purpose app framework competing with Electron/Tauri/
   Capacitor on feature completeness
-* an offline-first or asset-bundling tool -- v1/v2/v3 all assume the
-  SPA is reachable the way it already is (a URL, or however it's
+* an offline-first or asset-bundling tool -- every stage so far assumes
+  the SPA is reachable the way it already is (a URL, or however it's
   already served); bundling/offline is a plausible future addition,
   not a current goal
 * a claim that every SPA is a good fit -- some genuinely need a real
@@ -89,11 +104,12 @@ This project is not:
 * **an iOS project, at all, for the foreseeable future.** Not "not yet"
   in the sense of "next on the roadmap" -- genuinely out of scope. The
   reasons are concrete, not aesthetic:
-  * iOS has no equivalent of "use whichever engine the platform already
-    exposes freely." Every browser engine on iOS, including anything
-    calling itself Chrome, is required to be a `WKWebView` skin on top
-    of Apple's own WebKit -- there's no system Chromium to delegate to
-    the way desktop chrome mode can.
+  * iOS has no equivalent of "embed whichever engine the platform
+    already exposes freely." Every browser engine on iOS, including
+    anything calling itself Chrome, is required to be a `WKWebView`
+    skin on top of Apple's own WebKit -- there's no separate system
+    browser process a shell could delegate to the way a hypothetical
+    future desktop fallback stage might.
   * `WKWebView`'s own constraints (process model, JS bridge
     limitations, fullscreen/media-session APIs that don't map cleanly
     onto the same primitives ARKtube already had to fight for on
@@ -101,9 +117,9 @@ This project is not:
     smaller version of the Android one -- the ownership questions in
     Section 4/`SYSTEM-DESIGN-AGREEMENTS.md` would need re-deriving
     from scratch against WebKit's specific behavior, not ported.
-  * That's real, dedicated-attention work, and ARKware v1-v3 don't
-    have room for it without diluting the thing that made ARKtube's
-    Android build actually work: full attention on one runtime's
+  * That's real, dedicated-attention work, and ARKware's current
+    stages don't have room for it without diluting the thing that made
+    ARKtube's Android build actually work: full attention on one runtime's
     specific failure modes at a time (see ARKtube's own bugs-caught
     history for what "not full attention" costs). If iOS ever
     happens, it happens as its own fully-scoped stage, not a v4
@@ -122,14 +138,14 @@ This project is not:
                                     |
                  points at / is loaded by
                                     |
-      +-----------------+----------+----------+-----------------+
-      |                 |                     |                 |
-  Android v1       Desktop v2            Desktop v3          (iOS: N/A)
-  native Kotlin    Neutralino            Neutralino
-  WebView shell    window mode           chrome mode
-  (own runtime:    (runtime: OS-native   (runtime: system
-   Chromium        webview -- WebView2/  Chrome/Chromium,
-   WebView)         WebKit/WebKitGTK)     launched --app)
+      +-----------------+----------------------+-----------------+
+      |                 |                      |                 |
+  Android v1       Linux v2               Windows/macOS      (iOS: N/A)
+  native Kotlin    native C shell         (unstaged)
+  WebView shell    (runtime: WebKitGTK,   native C shell per
+  (own runtime:     embedded via GTK)     platform once its own
+   Chromium                               stage starts; engine
+   WebView)                               choice deferred until then
 ```
 
 Every stage owns the same two things, against a different runtime:
@@ -142,18 +158,20 @@ Every stage owns the same two things, against a different runtime:
 Every stage explicitly does *not* own:
 
 * the SPA's UI, layout, state, routing, or business logic
-* anything the underlying runtime (Chromium, the OS webview, system
-  Chrome) already manages correctly on its own
+* anything the underlying runtime (Chromium `WebView`, or a given
+  desktop OS's own embedded webview) already manages correctly on its
+  own
 
 This split -- shell owns the app-shaped things, the runtime's web
 layer owns everything web-shaped -- is identical to ARKtube's
 Section 4 split between `WebView` and YouTube. What's new here is
 that ARKware has to keep re-deriving *which specific things a given
 runtime already owns*, because that answer is runtime-specific.
-WebView2 doesn't expose the same surface as WebKitGTK; a `WebView`
-custom-view fullscreen callback doesn't exist for system Chrome
-launched via `--app`. See `SYSTEM-DESIGN-AGREEMENTS.md` for how each
-runtime's ownership boundary actually gets answered, not assumed.
+WebKitGTK on Linux doesn't expose the same surface Chromium `WebView`
+does on Android, and neither will whatever engine Windows or macOS end
+up embedding once those stages start. See `SYSTEM-DESIGN-AGREEMENTS.md`
+for how each runtime's ownership boundary actually gets answered, not
+assumed.
 
 ---
 
@@ -175,23 +193,22 @@ gaps, because each runtime's web layer has a different one:
   `SurfaceView` outside the DOM entirely (ARKtube
   `PROBLEM-STATEMENT.md` Section 6) -- that gap is proven and
   documented.
-* **Neutralino window mode (desktop v2):** the OS-native webview
-  (WebView2 on Windows, WebKit on macOS, WebKitGTK on Linux) is three
-  different engines with three different gap profiles -- window
-  chrome, tray/dock integration, and OS-level media-session hooks are
-  the known candidates, but which specific behaviors each engine's web
-  layer can't reach itself has to be verified per-OS, not assumed from
-  the Android case or from each other.
-* **Neutralino chrome mode (desktop v3):** launching system Chrome via
-  `--app` is a different ownership situation again -- ARKware doesn't
-  control the browser process the way it controls an embedded webview,
-  so some things v2 might own natively (window chrome behavior, for
-  instance) may instead be whatever `--app` mode already gives for
-  free, or may not be reachable at all. v3 exists specifically for
-  SPA features that need something an OS-native webview's web layer
-  can't do but an installed, fully-featured Chrome's web layer can --
-  it is not a drop-in upgrade path from v2, and it should only be
-  reached for when v2 has a proven, specific gap.
+* **Linux, WebKitGTK (desktop v2):** window chrome, tray/dock
+  integration, and OS-level media-session hooks (likely via MPRIS) are
+  the known candidates, but which specific behaviors WebKitGTK's web
+  layer can't reach itself still has to be verified against real code,
+  not assumed from the Android case.
+* **Windows and macOS (unstaged):** each embeds a different engine
+  again -- WebView2 on Windows, WKWebView on macOS -- with its own gap
+  profile. Nothing about Linux's findings transfers by assumption; each
+  gets the same from-scratch treatment once its own stage starts,
+  consistent with proving one runtime at a time rather than
+  generalizing ahead of evidence. A system-browser-delegation fallback
+  (the role Neutralino's chrome mode used to play, for SPA features an
+  embedded webview genuinely can't support) isn't ruled out for the
+  future, but it isn't planned either -- it would only get added as its
+  own stage, for a specific documented gap, not speculated into the
+  architecture ahead of one existing.
 
 ---
 
