@@ -8,14 +8,18 @@ npm install @horizon-ark-studio/arkware
 
 `npm install` does more than fetch this package: its `prepare` script
 runs `scripts/sync-from-main.js`, which pulls the LICENSE, README,
-and Android flavor shape from the exact `main` commit pinned in
+the Android flavor shape, and the native Linux shell source
+(`linux-project`) from the exact `main` commit pinned in
 [`arkware-runtime.json`](../arkware-runtime.json). See
 [`sync-and-versioning.md`](./sync-and-versioning.md) for what that
 means in practice.
 
-Requires Node.js >= 18, and the [Neutralino CLI](https://neutralino.js.org)
-(`neu`) installed and on `PATH` — both `arkware-shell` and
-`arkware-spa` shell out to `neu build` rather than vendoring it.
+Requires Node.js >= 18. `arkware-shell` and `arkware-spa` also need
+the [Neutralino CLI](https://neutralino.js.org) (`neu`) on `PATH` —
+they shell out to `neu build` rather than vendoring it.
+`arkware-linux` needs `cmake`, `pkg-config`, and GTK3/WebKitGTK dev
+packages instead (see [`linux-shell.md`](./linux-shell.md)); you only
+need those if you're using that CLI.
 
 ## Write `arkware.config.js`
 
@@ -49,21 +53,30 @@ Full field list: [`config-reference.md`](./config-reference.md).
 ## Pick a CLI
 
 - Pointing at a **live site** you don't control the build of →
-  `arkware-shell` (window loads a URL).
+  `arkware-shell` (Neutralino window loads a URL), or `arkware-linux`
+  (the real native GTK+WebKitGTK shell, Linux-only for now — see
+  below).
 - Bundling a **SPA build you own** so it runs offline → `arkware-spa`
   (copies `spa.buildDir` into the app).
 
-Both are covered in full in [`cli-reference.md`](./cli-reference.md).
-The short version:
+All three are covered in full in
+[`cli-reference.md`](./cli-reference.md). The short version:
 
 ```
 npx arkware-shell build
 # or
 npx arkware-spa build
+# or, for the real native Linux shell (needs cmake + GTK3/WebKitGTK
+# dev packages, and platforms.linux.enabled: true in your config):
+npx arkware-linux build
 ```
 
-Each scaffolds a Neutralino project under `platforms.desktop.outDir`
-and runs `neu build`.
+`arkware-shell`/`arkware-spa` each scaffold a Neutralino project under
+`platforms.desktop.outDir` and run `neu build`. `arkware-linux` is
+different — it copies `main`'s actual v2 native C shell source into
+`platforms.linux.outDir` and runs `cmake` directly, no Neutralino
+involved. See [`linux-shell.md`](./linux-shell.md) for why, and for
+the toolchain it needs.
 
 ## Add Android packaging (optional)
 
@@ -81,5 +94,7 @@ the output.
 
 - Full command/flag list → [`cli-reference.md`](./cli-reference.md)
 - Every config field → [`config-reference.md`](./config-reference.md)
+- The real native Linux shell (`arkware-linux`) →
+  [`linux-shell.md`](./linux-shell.md)
 - How the `main` pin works and how to bump it →
   [`sync-and-versioning.md`](./sync-and-versioning.md)

@@ -22,6 +22,9 @@ const fs = require("fs");
  * @property {Object} [platforms.android]
  * @property {boolean} platforms.android.enabled
  * @property {string} platforms.android.flavor
+ * @property {Object} [platforms.linux]
+ * @property {boolean} platforms.linux.enabled
+ * @property {string} platforms.linux.outDir
  */
 
 const DEFAULTS = {
@@ -33,6 +36,14 @@ const DEFAULTS = {
     desktop: {
       enabled: true,
       outDir: "./arkware-dist/desktop",
+    },
+    // Off by default, unlike platforms.desktop -- the Neutralino path
+    // stays the zero-config default so existing arkware.config.js
+    // files keep working unchanged; the native Linux shell is
+    // deliberately opt-in until it's had more real-world mileage.
+    linux: {
+      enabled: false,
+      outDir: "./arkware-dist/linux",
     },
   },
 };

@@ -5,8 +5,9 @@ const { parseArgs } = require("node:util");
 const { loadConfig } = require("../src/lib/config");
 const neutralino = require("../src/lib/neutralino");
 const { writeFlavorSnippet } = require("../src/lib/android");
+const pkg = require("../package.json");
 
-const HELP = `arkware-shell -- native desktop window pointed at a live URL
+const HELP = `arkware-shell v${pkg.version} -- native desktop window pointed at a live URL
 
 Wraps arkware.config.js's spa.targetUrl in a Neutralino window: the
 window chrome is real and native, the content is whatever the live
@@ -30,6 +31,12 @@ Commands:
 Options:
   --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
   --out <path>      emit-android-flavor only (default: ./arkware-android-flavor.gradle.kts)
+  --version         Print the installed @horizon-ark-studio/arkware version and exit
+  --help            Show this message and exit
+
+See also: \`arkware-linux\`, the native C shell (GTK + WebKitGTK, no
+Neutralino) that matches main's actual v2 desktop plan -- this CLI's
+\`build\` command stays Neutralino-backed for backward compatibility.
 `;
 
 function main() {
@@ -39,8 +46,14 @@ function main() {
       config: { type: "string" },
       out: { type: "string" },
       help: { type: "boolean" },
+      version: { type: "boolean" },
     },
   });
+
+  if (values.version) {
+    console.log(pkg.version);
+    process.exit(0);
+  }
 
   if (values.help || positionals.length === 0) {
     console.log(HELP);

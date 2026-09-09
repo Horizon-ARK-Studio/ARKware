@@ -30,7 +30,8 @@ npm install
 This branch doesn't merge from `main` via pull request; instead
 [`scripts/sync-from-main.js`](scripts/sync-from-main.js) pulls the
 handful of files this package depends on (LICENSE, README, the
-Android Gradle flavor shape) from `main`, over local git or a
+Android Gradle flavor shape, and the native Linux shell source under
+`linux-project`) from `main`, over local git or a
 `raw.githubusercontent.com` link when there's no local git to use.
 
 ### Version pin
@@ -51,12 +52,15 @@ for the full loop.
 npm install @horizon-ark-studio/arkware
 ```
 
-## Two CLIs
+## Three CLIs
 
-Both are thin wrappers around [Neutralino](https://neutralino.js.org)
-(`neu build`) — same window-mode shell the root README's platform
-table describes for desktop, just invoked from Node instead of by
-hand.
+`arkware-shell` and `arkware-spa` are thin wrappers around
+[Neutralino](https://neutralino.js.org) (`neu build`) — same
+window-mode shell the root README's platform table used to describe
+for desktop. `arkware-linux` is different: it builds `main`'s actual
+v2 native C shell (GTK + WebKitGTK, no Neutralino) — see
+[`docs/linux-shell.md`](docs/linux-shell.md) for why that's a
+separate CLI.
 
 ### `arkware-shell` — native window, live URL
 
@@ -84,6 +88,23 @@ it locally.
 arkware-spa build
 ```
 
+### `arkware-linux` — real native shell, GTK + WebKitGTK
+
+No Neutralino involved. Scaffolds `main`'s actual v2 desktop shell
+source (`linux-project`) into `platforms.linux.outDir` and runs
+`cmake` directly against it — the same two commands
+(`cmake -S . -B build`, `cmake --build build`) a person would run by
+hand. Needs `cmake`, `pkg-config`, and GTK3/WebKitGTK dev packages on
+`PATH` (not `neu`). Off by default — set `platforms.linux.enabled: true`
+in `arkware.config.js` to use it.
+
+```
+arkware-linux build
+```
+
+Full walkthrough, including why this isn't just another
+`arkware-shell` flag: [`docs/linux-shell.md`](docs/linux-shell.md).
+
 ## `arkware.config.js`
 
 The single file both CLIs read — everything they need to know to
@@ -106,6 +127,7 @@ module.exports = {
   platforms: {
     desktop: { enabled: true, outDir: "./arkware-dist/desktop" },
     android: { enabled: true, flavor: "exampleapp" },
+    linux: { enabled: false, outDir: "./arkware-dist/linux" },
   },
 };
 ```

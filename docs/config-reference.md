@@ -20,8 +20,8 @@ module.exports = {
 | `targetUrl` | `string` | `arkware-shell` | Live URL the native window points at. Required for `arkware-shell build`. Ignored by `arkware-spa`. |
 | `buildDir` | `string` | `arkware-spa` | Local directory of your SPA's already-built static output (e.g. `./dist`). Required for `arkware-spa build`. Ignored by `arkware-shell`. |
 | `displayName` | `string` | both | Window titles, the Android media notification's subtitle/artist field, generated app metadata. |
-| `nagHideSelectors` | `string[]` | both (passed through to Android flavor emission) | CSS selectors for an "open our app" nag banner to hide, if the SPA has one. Mirrors `SpaConfig.kt` on the Android side. Empty by default — arkware won't guess selectors for you. |
-| `nagHideTextMatches` | `string[]` | both | Same purpose as above, matched by text content instead of selector. |
+| `nagHideSelectors` | `string[]` | both (passed through to Android flavor emission and `arkware-linux`'s shell config) | CSS selectors for an "open our app" nag banner to hide, if the SPA has one. Mirrors `SpaConfig.kt` on the Android side. Empty by default — arkware won't guess selectors for you. |
+| `nagHideTextMatches` | `string[]` | both, same platforms as above | Same purpose as above, matched by text content instead of selector. |
 
 ## `app`
 
@@ -49,6 +49,19 @@ Neither CLI builds an APK regardless of this block; it only controls
 what `emit-android-flavor` writes. Actual APK builds happen in CI on
 `main`.
 
+## `platforms.linux`
+
+| Field | Type | Notes |
+|---|---|---|
+| `enabled` | `boolean` | Must be `true` for `arkware-linux build`. **Defaults to `false`** — unlike `platforms.desktop`, this is opt-in. See [`linux-shell.md`](./linux-shell.md#why-platformslinuxenabled-defaults-to-false). |
+| `outDir` | `string` | Where the copied `linux-project` source (and its own `build/` output) is written. |
+
+Not Neutralino-backed — `arkware-linux build` scaffolds and
+`cmake --build`s `main`'s real native C shell. See
+[`linux-shell.md`](./linux-shell.md) for the full picture, including
+what it needs installed locally (`cmake`, `pkg-config`, GTK3/WebKitGTK
+dev packages — not `neu`).
+
 ## What reads what
 
 | Command | `spa.*` fields it needs | `platforms.*` it needs |
@@ -56,6 +69,7 @@ what `emit-android-flavor` writes. Actual APK builds happen in CI on
 | `arkware-shell build` | `targetUrl` | `desktop.enabled` |
 | `arkware-shell emit-android-flavor` | (none required) | `android.enabled`, `android.flavor` |
 | `arkware-spa build` | `buildDir` | `desktop.enabled` |
+| `arkware-linux build` | `targetUrl` | `linux.enabled` |
 
 `app.*` fields are read by every command that scaffolds or emits
 output, since they identify the app regardless of platform.

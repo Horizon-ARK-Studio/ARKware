@@ -1,9 +1,9 @@
 {
   "//": "The npm branch is a distribution layer, not a copy of ARKware itself -- see README.md's 'Where the code actually lives' section. This file is what keeps 'npm install' from silently drifting: scripts/sync-from-main.js reads `ref` below and pulls files from *that exact commit*, not a moving `main` HEAD, so a package published today can't wake up pointed at code that changed on `main` yesterday.",
 
-  "ref": "61e6ba4f1cfed7b1a889e75467003063a466b909",
+  "ref": "b7bf563760d5e5489318d384daf046fc3e05db66",
 
-  "description": "main @ 'github ci updated' (Android smoke-test CI fix: run the emulator-runner script as a single shell invocation so $package persists across the install/monkey/dumpsys chain) -- the commit android-project/app/build.gradle.kts's flavor shape (src/lib/android.js) and the LICENSE/README text (scripts/sync-from-main.js) in this package were written and verified against.",
+  "description": "main @ 'v2: Linux native C shell scaffold (GTK + WebKitGTK via webview.h)' -- the first commit with linux-project/ on main, which src/lib/linux.js (arkware-linux) now depends on, in addition to what this pin already covered: android-project/app/build.gradle.kts's flavor shape (src/lib/android.js) and the LICENSE/README text (scripts/sync-from-main.js). NOTE: at the time this pin was bumped, this commit exists on the ARKware-npm-branch developer's local main checkout but had not yet been pushed to Horizon-ARK-Studio/ARKware's public main -- the HTTPS fallback in sync-from-main.js will 404 against it until that push happens. Local-git sync works today for anyone with both branches checked out from the same clone; bump this pin's description (not necessarily the ref itself, if the SHA doesn't change on push) once the push is confirmed and the HTTPS path has been re-verified.",
 
   "//bump": "To move the pin forward: update `ref` to the new main commit SHA (or a tag, once main starts tagging releases), re-run `npm run sync` to pull the new content, re-verify the CLIs still work against it, then commit both the updated ref and whatever vendor/ output review turned up. Never let this drift silently -- a mismatched pin is exactly the 'npm package from yesterday + main from today' failure mode this file exists to prevent."
 }

@@ -79,5 +79,19 @@ module.exports = {
       // the matrix entry android-build.yml needs added for it.
       flavor: "exampleapp",
     },
+
+    // Consumed by `arkware-linux build`. Off by default (unlike
+    // platforms.desktop) since it's newer and requires system
+    // GTK3/WebKitGTK dev packages + cmake on PATH -- opt in once
+    // you've got those installed. Unlike platforms.desktop, this
+    // doesn't go through Neutralino at all: it scaffolds and builds
+    // main's actual v2 native C shell (linux-project). See
+    // docs/linux-shell.md for the full walkthrough.
+    linux: {
+      enabled: false,
+      // Output directory the copied linux-project source (and its
+      // own build/ dir) is written to.
+      outDir: "./arkware-dist/linux",
+    },
   },
 };

@@ -62,6 +62,29 @@ const FILES = {
   "README.md": "vendor/main/README.md",
   "docs/Foundational/PROBLEM-STATEMENT.md": "vendor/main/PROBLEM-STATEMENT.md",
   "android-project/app/build.gradle.kts": "vendor/main/android-build.gradle.kts",
+  // v2's native C shell (see ROADMAP.md's v2 stage) -- pulled in full
+  // so `arkware-linux build` (src/lib/linux.js) has real source to
+  // scaffold + `cmake --build`, instead of this package reimplementing
+  // or reproducing main's C shell from scratch. Every file under
+  // linux-project/ is listed individually rather than synced as a
+  // directory, same one-path-per-entry shape the rest of FILES
+  // already uses -- no separate directory-walk codepath to maintain.
+  "linux-project/CMakeLists.txt": "vendor/main/linux-project/CMakeLists.txt",
+  "linux-project/README.md": "vendor/main/linux-project/README.md",
+  "linux-project/arkware.config.example": "vendor/main/linux-project/arkware.config.example",
+  "linux-project/src/main.c": "vendor/main/linux-project/src/main.c",
+  "linux-project/src/webview_impl.cc": "vendor/main/linux-project/src/webview_impl.cc",
+  "linux-project/src/config/config.c": "vendor/main/linux-project/src/config/config.c",
+  "linux-project/src/config/config.h": "vendor/main/linux-project/src/config/config.h",
+  "linux-project/src/logging/logging.c": "vendor/main/linux-project/src/logging/logging.c",
+  "linux-project/src/logging/logging.h": "vendor/main/linux-project/src/logging/logging.h",
+  "linux-project/src/media/media.c": "vendor/main/linux-project/src/media/media.c",
+  "linux-project/src/media/media.h": "vendor/main/linux-project/src/media/media.h",
+  "linux-project/src/shell/shell.c": "vendor/main/linux-project/src/shell/shell.c",
+  "linux-project/src/shell/shell.h": "vendor/main/linux-project/src/shell/shell.h",
+  "linux-project/src/webview_bridge/bridge.c": "vendor/main/linux-project/src/webview_bridge/bridge.c",
+  "linux-project/src/webview_bridge/bridge.h": "vendor/main/linux-project/src/webview_bridge/bridge.h",
+  "linux-project/vendor/webview.h": "vendor/main/linux-project/vendor/webview.h",
 };
 
 async function main() {

@@ -4,8 +4,9 @@
 const { parseArgs } = require("node:util");
 const { loadConfig } = require("../src/lib/config");
 const neutralino = require("../src/lib/neutralino");
+const pkg = require("../package.json");
 
-const HELP = `arkware-spa -- offline native app bundling a local SPA build
+const HELP = `arkware-spa v${pkg.version} -- offline native app bundling a local SPA build
 
 Copies arkware.config.js's spa.buildDir (your SPA's already-built
 static output) into a Neutralino app's own resources and serves it
@@ -19,6 +20,8 @@ Usage:
 
 Options:
   --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
+  --version         Print the installed @horizon-ark-studio/arkware version and exit
+  --help            Show this message and exit
 `;
 
 function main() {
@@ -27,8 +30,14 @@ function main() {
     options: {
       config: { type: "string" },
       help: { type: "boolean" },
+      version: { type: "boolean" },
     },
   });
+
+  if (values.version) {
+    console.log(pkg.version);
+    process.exit(0);
+  }
 
   if (values.help || positionals.length === 0) {
     console.log(HELP);
