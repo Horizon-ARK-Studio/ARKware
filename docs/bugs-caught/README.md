@@ -47,8 +47,9 @@ Template:
   Additional information.
 -->
 
-_(No code yet -- Stage 0. First entries land once v1 (Android)
-implementation starts.)_
+_(No active bugs currently tracked. v1 (Android) has code and is in
+its working/testing stage -- entries land here as issues are found
+against it.)_
 
 ---
 

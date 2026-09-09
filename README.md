@@ -41,11 +41,11 @@ The SPA, installed.
 
 ## Platforms
 
-| Stage | Platform | Shell |
-|---|---|---|
-| **v1** | Android | Native Kotlin, `WebView` + GoF patterns where they earn their place |
-| **v2** | Desktop | [Neutralino](https://neutralino.js.org/) **window mode** — OS-native webview (WebView2 / WebKit / WebKitGTK) |
-| **v3** | Desktop | Neutralino **chrome mode** — delegates to the system's installed Chrome/Chromium (`--app`), no bundled runtime, used only where window mode structurally can't do something the SPA needs |
+| Stage | Platform | Shell | Status |
+|---|---|---|---|
+| **v1** | Android | Native Kotlin, `WebView` + GoF patterns where they earn their place | 🚧 working stage — code in, active testing |
+| **v2** | Desktop | [Neutralino](https://neutralino.js.org/) **window mode** — OS-native webview (WebView2 / WebKit / WebKitGTK) | docs only |
+| **v3** | Desktop | Neutralino **chrome mode** — delegates to the system's installed Chrome/Chromium (`--app`), no bundled runtime, used only where window mode structurally can't do something the SPA needs | docs only |
 
 iOS is explicitly out of scope — see
 [`docs/Foundational/PROBLEM-STATEMENT.md`](docs/Foundational/PROBLEM-STATEMENT.md#non-goals)
@@ -55,10 +55,19 @@ for why.
 
 ## Status
 
-🚧 **Stage 0 — docs only.** No code yet. See
-[`docs/README.md`](docs/README.md) for the index and
-[`docs/Foundational/ROADMAP.md`](docs/Foundational/ROADMAP.md) for
-what each stage actually has to prove before the next one starts.
+🚧 **v1 (Android) — working stage.** The native Kotlin `WebView`
+shell has code and is in active testing against the "done when"
+bar in [`docs/Foundational/ROADMAP.md`](docs/Foundational/ROADMAP.md#v1----android-native-kotlin-shell);
+see [`android-project/`](android-project) and
+[`docs/bugs-caught/README.md`](docs/bugs-caught/README.md) for what's
+still outstanding before v1 is called done. v2/v3 (desktop) remain
+docs-only. See [`docs/README.md`](docs/README.md) for the full index.
+
+An npm packaging + CLI layer for this project also exists on the
+[`npm` branch](https://github.com/Horizon-ARK-Studio/ARKware/tree/npm)
+(`@horizon-ark-studio/arkware`) — a separate ecosystem-specific
+distribution layer, not a second copy of this code; see that branch's
+README for how it stays in sync with `main`.
 
 ---
 
