@@ -1,6 +1,6 @@
 {
   "name": "@horizon-ark-studio/arkware",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Package any SPA as a thin native shell. One `arkware` CLI: `arkware android emit-flavor` authors Gradle config for main's Android WebView shell, `arkware linux build` scaffolds and cmake-builds main's real native C shell (GTK + WebKitGTK, Linux desktop only for now).",
   "license": "GPL-3.0-or-later",
   "author": "Horizon ARK Studio",
