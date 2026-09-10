@@ -1,4 +1,5 @@
 *.patch
+*.txt
 
 # npm branch: generated/synced output, not hand-maintained here.
 node_modules/

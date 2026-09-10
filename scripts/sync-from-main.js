@@ -61,7 +61,71 @@ const FILES = {
   "LICENSE": "LICENSE",
   "README.md": "vendor/main/README.md",
   "docs/Foundational/PROBLEM-STATEMENT.md": "vendor/main/PROBLEM-STATEMENT.md",
-  "android-project/app/build.gradle.kts": "vendor/main/android-build.gradle.kts",
+  // Full android-project tree, one path per entry (same shape as
+  // linux-project below) -- needed so `arkware android` has an actual
+  // buildable project on disk to scaffold into, the way
+  // src/lib/linux.js's scaffold() already does for Linux. Previously
+  // only app/build.gradle.kts was vendored, which was enough for
+  // emitFlavorSnippet() (a Gradle-snippet string, no filesystem
+  // target) but not for anything that needs to copy files *into* a
+  // real Android project tree -- e.g. spa-native's bundled-assets
+  // mode, which needs app/src/main/assets/ to exist somewhere local.
+  "android-project/app/build.gradle.kts": "vendor/main/android-project/app/build.gradle.kts",
+  "android-project/app/proguard-rules.pro": "vendor/main/android-project/app/proguard-rules.pro",
+  "android-project/app/src/main/AndroidManifest.xml": "vendor/main/android-project/app/src/main/AndroidManifest.xml",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/ArkwareApplication.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/ArkwareApplication.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/MainActivity.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/MainActivity.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/MediaPlaybackService.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/MediaPlaybackService.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/config/SpaConfig.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/config/SpaConfig.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/FullscreenVideoController.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/FullscreenVideoController.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/StretchToggleButtonFactory.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/StretchToggleButtonFactory.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/SurfaceViewZOrderNeutralizer.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/SurfaceViewZOrderNeutralizer.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/ZoomCropStrategy.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/fullscreen/ZoomCropStrategy.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/layout/LayoutReflowHelper.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/layout/LayoutReflowHelper.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/logging/ArkLogger.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/logging/ArkLogger.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/media/MediaNotificationFactory.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/media/MediaNotificationFactory.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/media/MediaSessionCoordinator.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/media/MediaSessionCoordinator.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/prefs/ForceFillPreference.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/prefs/ForceFillPreference.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/theme/CssColorParser.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/theme/CssColorParser.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/theme/StatusBarThemeApplier.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/theme/StatusBarThemeApplier.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/ArkScripts.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/ArkScripts.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/ArkWebViewFactory.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/ArkWebViewFactory.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/ArkJsBridge.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/ArkJsBridge.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/BridgeListeners.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/BridgeListeners.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/MediaPlaybackBridge.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/MediaPlaybackBridge.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/OrientationBridge.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/OrientationBridge.kt",
+  "android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/ThemeBridge.kt": "vendor/main/android-project/app/src/main/java/com/horizonarkstudio/arkware/webview/bridge/ThemeBridge.kt",
+  "android-project/app/src/main/res/drawable/ic_launcher_background.xml": "vendor/main/android-project/app/src/main/res/drawable/ic_launcher_background.xml",
+  "android-project/app/src/main/res/drawable/ic_launcher_monochrome.xml": "vendor/main/android-project/app/src/main/res/drawable/ic_launcher_monochrome.xml",
+  "android-project/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml": "vendor/main/android-project/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+  "android-project/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml": "vendor/main/android-project/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+  "android-project/app/src/main/res/mipmap-hdpi/ic_launcher.png": "vendor/main/android-project/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+  "android-project/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": "vendor/main/android-project/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+  "android-project/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": "vendor/main/android-project/app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+  "android-project/app/src/main/res/mipmap-mdpi/ic_launcher.png": "vendor/main/android-project/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+  "android-project/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": "vendor/main/android-project/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+  "android-project/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": "vendor/main/android-project/app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+  "android-project/app/src/main/res/mipmap-xhdpi/ic_launcher.png": "vendor/main/android-project/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+  "android-project/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": "vendor/main/android-project/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+  "android-project/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": "vendor/main/android-project/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+  "android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": "vendor/main/android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+  "android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": "vendor/main/android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+  "android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": "vendor/main/android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+  "android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": "vendor/main/android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+  "android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": "vendor/main/android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+  "android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": "vendor/main/android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+  "android-project/app/src/main/res/values-night/colors.xml": "vendor/main/android-project/app/src/main/res/values-night/colors.xml",
+  "android-project/app/src/main/res/values-night/themes.xml": "vendor/main/android-project/app/src/main/res/values-night/themes.xml",
+  "android-project/app/src/main/res/values/colors.xml": "vendor/main/android-project/app/src/main/res/values/colors.xml",
+  "android-project/app/src/main/res/values/strings.xml": "vendor/main/android-project/app/src/main/res/values/strings.xml",
+  "android-project/app/src/main/res/values/themes.xml": "vendor/main/android-project/app/src/main/res/values/themes.xml",
+  "android-project/build.gradle.kts": "vendor/main/android-project/build.gradle.kts",
+  "android-project/settings.gradle.kts": "vendor/main/android-project/settings.gradle.kts",
+  "android-project/gradle.properties": "vendor/main/android-project/gradle.properties",
+  "android-project/gradlew": "vendor/main/android-project/gradlew",
+  "android-project/gradlew.bat": "vendor/main/android-project/gradlew.bat",
+  "android-project/gradle/wrapper/gradle-wrapper.jar": "vendor/main/android-project/gradle/wrapper/gradle-wrapper.jar",
+  "android-project/gradle/wrapper/gradle-wrapper.properties": "vendor/main/android-project/gradle/wrapper/gradle-wrapper.properties",
   // v2's native C shell (see ROADMAP.md's v2 stage) -- pulled in full
   // so `arkware linux build` (src/lib/linux.js) has real source to
   // scaffold + `cmake --build`, instead of this package reimplementing
@@ -121,6 +185,7 @@ function tryLocalGit(root) {
         { cwd: root }
       );
       fs.writeFileSync(dest, contents);
+      restoreExecBitIfNeeded(dest);
       console.log(`sync-from-main: (git) ${srcPath} -> ${destPath}`);
     } catch (err) {
       console.warn(`sync-from-main: (git) failed on ${srcPath}: ${err.message}`);
@@ -136,10 +201,23 @@ async function fetchAllOverHttps(root) {
     try {
       const body = await fetchUrl(RAW_BASE + srcPath);
       fs.writeFileSync(dest, body);
+      restoreExecBitIfNeeded(dest);
       console.log(`sync-from-main: (https) ${srcPath} -> ${destPath}`);
     } catch (err) {
       console.warn(`sync-from-main: (https) failed on ${srcPath}: ${err.message}`);
     }
+  }
+}
+
+// Neither `git show` (a blob's bytes, not its mode) nor a raw HTTPS
+// fetch preserve the executable bit git stores for `gradlew`. Gradle's
+// own wrapper shell script needs +x to run via `./gradlew`, the same
+// way a person cloning android-project by hand would get it from git
+// checkout -- so this is restoring what the sync path drops, not
+// granting a new permission.
+function restoreExecBitIfNeeded(dest) {
+  if (path.basename(dest) === "gradlew") {
+    fs.chmodSync(dest, 0o755);
   }
 }
 

@@ -18,6 +18,10 @@ const fs = require("fs");
  * @property {Object} [platforms.android]
  * @property {boolean} platforms.android.enabled
  * @property {string} platforms.android.flavor
+ * @property {string} platforms.android.outDir
+ * @property {Object} [platforms.android.bundledAssets]
+ * @property {boolean} platforms.android.bundledAssets.enabled
+ * @property {string} [platforms.android.bundledAssets.assetsDir]
  * @property {Object} [platforms.linux]
  * @property {boolean} platforms.linux.enabled
  * @property {string} platforms.linux.outDir
@@ -29,6 +33,22 @@ const DEFAULTS = {
     nagHideTextMatches: [],
   },
   platforms: {
+    android: {
+      outDir: "./arkware-dist/android",
+      // Off by default. When enabled, `arkware android` (once the
+      // spa-native CLI path lands -- see
+      // docs/PROPOSAL-spa-shell-and-spa-native.md) copies
+      // bundledAssets.assetsDir into the scaffolded project's
+      // app/src/main/assets/ and points the generated flavor's
+      // TARGET_URL at file:///android_asset/index.html instead of a
+      // live URL. Library-level support (src/lib/android.js's
+      // scaffold()) exists ahead of that CLI wiring so the two land
+      // independently -- this flag has no effect on `arkware android
+      // build` (the Gradle-flavor-authoring path) today.
+      bundledAssets: {
+        enabled: false,
+      },
+    },
     // Off by default -- needs system GTK3/WebKitGTK dev packages +
     // cmake on PATH; opt in once that toolchain is installed. This
     // is the only desktop target this package (or main) ships right
@@ -76,11 +96,13 @@ function loadConfig(configPath) {
     config.spa && config.spa.displayName,
     "spa.displayName is required"
   );
-  assert(
-    config.spa && config.spa.targetUrl,
-    "spa.targetUrl is required -- the live URL both `arkware android build` " +
-      "(as TARGET_URL) and `arkware linux build` (as the window's target) point at"
-  );
+  // spa.targetUrl is NOT validated here -- whether it's required
+  // depends on *which* command is about to run (`android build` and
+  // `linux build` need a live URL; `android spa-native` doesn't, and
+  // decides that from a --assets CLI flag that isn't known yet at
+  // config-load time). Each of those commands' own library function
+  // (android.js's emitFlavorSnippet, linux.js's scaffold) asserts on
+  // targetUrl itself, at the point it actually needs one.
 
   config.__configDir = path.dirname(resolved);
   if (config.app.icon) {

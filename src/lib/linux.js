@@ -67,6 +67,17 @@ function scaffold(config) {
     );
   }
 
+  if (!config.spa.targetUrl) {
+    throw new Error(
+      "spa.targetUrl is required in arkware.config.js for `arkware linux build` " +
+        "-- the native C shell always points at a URL (see linux-project's " +
+        "own README on main); there's no bundled-local-assets mode for Linux " +
+        "yet (see docs/PROPOSAL-spa-shell-and-spa-native.md's Feature A, " +
+        "which notes Linux would need no main code changes but isn't wired " +
+        "up on this branch yet either)."
+    );
+  }
+
   if (!fs.existsSync(VENDORED_LINUX_PROJECT)) {
     throw new Error(
       "vendor/main/linux-project is missing. Run `npm run sync` to pull it " +
