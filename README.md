@@ -58,17 +58,23 @@ npm install @horizon-ark-studio/arkware
 Neutralino anywhere in it — `main` settled on one native C shell per
 desktop OS, and this branch tracks that.
 
-### `arkware linux build` — real native shell, GTK + WebKitGTK
+### `arkware linux build` — real native shell, GTK + WebKitGTK, packaged
 
 Scaffolds `main`'s actual v2 desktop shell source (`linux-project`)
-into `platforms.linux.outDir` and runs `cmake` directly against it —
+into `platforms.linux.outDir`, runs `cmake` directly against it —
 the same two commands (`cmake -S . -B build`, `cmake --build build`)
-a person would run by hand. Needs `cmake`, `pkg-config`, and
-GTK3/WebKitGTK dev packages on `PATH`. Off by default — set
-`platforms.linux.enabled: true` in `arkware.config.js` to use it.
+a person would run by hand — and packages the result into an
+`.AppImage` (default), `.deb`, or `.rpm`. Needs `cmake`,
+`pkg-config`, and GTK3/WebKitGTK dev packages on `PATH` either way,
+plus whichever packaging tool the chosen format needs. Off by
+default — set `platforms.linux.enabled: true` in `arkware.config.js`
+to use it.
 
 ```
-arkware linux build
+arkware linux build                 # AppImage
+arkware linux build --debian
+arkware linux build --rpm
+arkware linux build --github-actions  # write a CI workflow instead
 ```
 
 Full walkthrough: [`docs/linux-shell.md`](docs/linux-shell.md).

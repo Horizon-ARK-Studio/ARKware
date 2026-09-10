@@ -5,6 +5,7 @@ const { parseArgs } = require("node:util");
 const pkg = require("../package.json");
 const { loadConfig } = require("../src/lib/config");
 const linux = require("../src/lib/linux");
+const linuxPackage = require("../src/lib/linux-package");
 const android = require("../src/lib/android");
 
 const TOP_HELP = `arkware v${pkg.version} -- package any SPA as a thin native shell
@@ -25,7 +26,9 @@ Commands:
   android spa-shell       Not yet supported -- see
                           docs/PROPOSAL-spa-shell-and-spa-native.md
   linux build             Scaffold + cmake-build main's native Linux shell
-                          (GTK + WebKitGTK)
+                          (GTK + WebKitGTK), then package it as an
+                          AppImage/.deb/.rpm -- or, with --github-actions,
+                          write a CI workflow that does the same
 
 Options:
   --version   Print the installed @horizon-ark-studio/arkware version and exit
@@ -97,18 +100,42 @@ If vendor/main/android-project is missing, run \`npm run sync\` first.
   linux: `arkware linux -- main's real native C shell (GTK + WebKitGTK)
 
 Scaffolds main's v2 native Linux shell source (linux-project) into
-platforms.linux.outDir and runs cmake against it -- the same two
+platforms.linux.outDir, runs cmake against it -- the same two
 commands (\`cmake -S . -B build\`, \`cmake --build build\`) a person
-would run by hand. Requires cmake, pkg-config, and the GTK3/WebKitGTK
-dev packages on PATH. Off by default -- set platforms.linux.enabled:
-true in arkware.config.js to use it.
+would run by hand -- and then wraps the resulting binary into one
+installable package file. Requires cmake, pkg-config, and the
+GTK3/WebKitGTK dev packages on PATH either way. Off by default -- set
+platforms.linux.enabled: true in arkware.config.js to use it.
+
+Package format (pass at most one; default is --app-img):
+  (none) / --app-img   .AppImage, via \`appimagetool\` on PATH
+  --debian              .deb, via \`dpkg-deb\` on PATH
+  --rpm                 .rpm, via \`rpmbuild\` on PATH
+
+Each format needs its own tool on PATH (see the error message if it's
+missing for where to get it) -- this package doesn't vendor or
+reimplement any of them, same as it doesn't vendor cmake or Gradle.
+
+\`--github-actions\` skips scaffolding/building/packaging locally and
+instead writes a workflow file
+(.github/workflows/arkware-linux-build.yml, relative to
+arkware.config.js) that does all three in CI on push -- installing
+whichever toolchain the selected format(s) need itself (rpmbuild via
+apt, appimagetool via a direct GitHub-release download). Combine it
+with a format flag to generate a workflow for just that one format;
+without one, the generated workflow builds all three as a matrix.
 
 Usage:
-  arkware linux build [--config <path>]
+  arkware linux build [--config <path>] [--app-img|--debian|--rpm]
+  arkware linux build --github-actions [--config <path>] [--app-img|--debian|--rpm]
 
 Options:
-  --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
-  --help            Show this message
+  --config <path>     Path to arkware.config.js (default: ./arkware.config.js)
+  --app-img            Package as an AppImage (default)
+  --debian             Package as a .deb
+  --rpm                Package as an .rpm
+  --github-actions     Write a CI workflow instead of building locally
+  --help               Show this message
 
 If vendor/main/linux-project is missing, run \`npm run sync\` first.
 `,
@@ -229,6 +256,10 @@ function runLinux(args) {
     allowPositionals: true,
     options: {
       config: { type: "string" },
+      "app-img": { type: "boolean" },
+      debian: { type: "boolean" },
+      rpm: { type: "boolean" },
+      "github-actions": { type: "boolean" },
       help: { type: "boolean" },
     },
   });
@@ -245,12 +276,46 @@ function runLinux(args) {
     process.exit(1);
   }
 
+  // "none or --app-img means app img" -- at most one format flag,
+  // AppImage if none given.
+  const chosen = ["app-img", "debian", "rpm"].filter((f) => values[f]);
+  if (chosen.length > 1) {
+    console.error(
+      `arkware linux build: pass at most one of --app-img, --debian, --rpm ` +
+        `(got ${chosen.map((f) => "--" + f).join(", ")}).`
+    );
+    process.exit(1);
+  }
+  const format = chosen[0] || "app-img";
+
   const config = loadConfig(values.config);
+
+  if (values["github-actions"]) {
+    // A format flag alongside --github-actions narrows the generated
+    // workflow to that one format; none given builds all three as a
+    // matrix, so a first-time user gets full coverage by default.
+    const workflowFormat = chosen[0]; // undefined is intentional here, not "app-img"
+    const workflowPath = linuxPackage.writeGithubActionsWorkflow(config, workflowFormat);
+    console.log(`Wrote GitHub Actions workflow to ${workflowPath}`);
+    console.log(
+      workflowFormat
+        ? `It builds and uploads the ${workflowFormat} package on every push to main.`
+        : "It builds and uploads all three package formats (app-img, debian, rpm) on every push to main, as a matrix."
+    );
+    console.log("Commit it and push -- no local Android/Linux toolchain needed for this step.");
+    return;
+  }
+
   const { outDir } = linux.scaffold(config);
   console.log(`Scaffolded native Linux shell project at ${outDir}`);
   console.log(`Window will load: ${config.spa.targetUrl}`);
-  const ok = linux.build(outDir);
-  process.exit(ok ? 0 : 1);
+  const built = linux.build(outDir);
+  if (!built) {
+    process.exit(1);
+  }
+
+  const packagePath = linuxPackage.packageFor(format, config, outDir);
+  console.log(`Packaged (${format}): ${packagePath}`);
 }
 
 const COMMANDS = { android: runAndroid, linux: runLinux };

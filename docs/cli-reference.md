@@ -90,12 +90,13 @@ for exactly what's missing, on both platforms, and why.
 ## `arkware linux build`
 
 Native Linux desktop shell — GTK + WebKitGTK, built with `cmake`
-directly. This is the only desktop platform either `main` or this
-package ships right now. Full walkthrough:
-[`linux-shell.md`](./linux-shell.md).
+directly, then packaged into one installable file. This is the only
+desktop platform either `main` or this package ships right now. Full
+walkthrough: [`linux-shell.md`](./linux-shell.md).
 
 ```
-arkware linux build [--config <path>]
+arkware linux build [--config <path>] [--app-img|--debian|--rpm]
+arkware linux build --github-actions [--app-img|--debian|--rpm]
 arkware linux --help
 ```
 
@@ -104,22 +105,30 @@ Reads `arkware.config.js`, writes the C shell's own `arkware.config`
 than this package's `arkware.config.js`) from `spa.targetUrl` /
 `spa.displayName` / `spa.nagHideSelectors` / `spa.nagHideTextMatches`,
 copies the vendored `linux-project` source into
-`platforms.linux.outDir`, and runs `cmake -S . -B build` +
-`cmake --build build` there. Requires `spa.targetUrl` and
-`platforms.linux.enabled: true` (defaults to `false` — see
+`platforms.linux.outDir`, runs `cmake -S . -B build` +
+`cmake --build build` there, then packages the resulting binary.
+Requires `spa.targetUrl` and `platforms.linux.enabled: true` (defaults
+to `false` — see
 [`linux-shell.md`](./linux-shell.md#why-platformslinuxenabled-defaults-to-false)).
 
 Needs `cmake`, `pkg-config`, and GTK3/WebKitGTK dev packages on
-`PATH`. See [`linux-shell.md`](./linux-shell.md#what-it-needs-installed).
+`PATH` to build, plus one of `appimagetool`/`dpkg-deb`/`rpmbuild` to
+package (see [`linux-shell.md`](./linux-shell.md#generate--build--package)
+for what each format needs). `--github-actions` needs none of that
+locally — it writes a CI workflow that installs everything itself.
 
-On success, the built binary is at
-`<platforms.linux.outDir>/build/arkware`.
+On success, the packaged file is at
+`<platforms.linux.outDir>/dist/`.
 
 ### Options
 
 | Flag | Default | Meaning |
 |---|---|---|
 | `--config <path>` | `./arkware.config.js` | Config file to load |
+| `--app-img` | *(default)* | Package as an `.AppImage` |
+| `--debian` | — | Package as a `.deb` |
+| `--rpm` | — | Package as an `.rpm` |
+| `--github-actions` | off | Write `.github/workflows/arkware-linux-build.yml` instead of building locally |
 | `--help` | — | Print usage and exit |
 
 ---
@@ -136,6 +145,11 @@ On success, the built binary is at
 - **`cmake: command not found`** (from `arkware linux build`) —
   install `cmake`, `pkg-config`, and the GTK3/WebKitGTK dev packages;
   see [`linux-shell.md`](./linux-shell.md#what-it-needs-installed).
+- **`needs \`appimagetool\`/\`dpkg-deb\`/\`rpmbuild\` on PATH`** (from
+  `arkware linux build`) — install the tool the error names for the
+  format you asked for (or none was asked for, so it's AppImage's
+  `appimagetool`), or use `--github-actions` to build in CI instead,
+  which installs all three itself.
 - **`vendor/main/linux-project is missing`** (from `arkware linux build`) —
   run `npm run sync`; if that still comes up empty, the commit pinned
   in `arkware-runtime.json` predates v2's `linux-project` landing on
