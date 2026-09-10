@@ -5,8 +5,7 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 /**
- * Unlike arkware-shell/arkware-spa (both Neutralino-backed), this
- * module doesn't scaffold a template into shape from parameters --
+ * This module doesn't scaffold a template into shape from parameters --
  * `main`'s v2 stage (docs/Foundational/ROADMAP.md) is a real native C
  * shell (GTK + WebKitGTK via webview.h), not a config-driven
  * generator. So the "scaffold" here is: copy the vendored source
@@ -16,12 +15,10 @@ const { spawnSync } = require("child_process");
  * copied source, the same as a person would by hand per
  * linux-project/README.md on main.
  *
- * This is deliberately not routed through Neutralino: main's
- * ROADMAP.md v2 section is explicit that desktop is "one native C
- * shell per OS", and Neutralino is not part of that plan for Linux.
- * arkware-shell/arkware-spa's own Neutralino-backed desktop output
- * remains available for anyone who wants it; this is the separate,
- * newer path that matches what `main` actually ships for Linux.
+ * There's no Neutralino path in this package at all anymore -- main's
+ * ROADMAP.md is explicit that desktop is "one native C shell per OS",
+ * and this is that shell for Linux, the only desktop target either
+ * main or this package ships right now.
  */
 const VENDORED_LINUX_PROJECT = path.join(
   __dirname,
@@ -35,10 +32,9 @@ const VENDORED_LINUX_PROJECT = path.join(
 /**
  * Renders the C shell's own config format (a flat `KEY=value` file --
  * see linux-project/src/config/config.c on main) from the same
- * arkware.config.js fields the Neutralino-backed CLIs already read.
- * Deliberately the same field set as android.js's emitFlavorSnippet
- * pulls from, and the same convention SpaConfig.kt uses on Android:
- * one config authored once, re-shaped per platform by this package.
+ * arkware.config.js fields android.js's emitFlavorSnippet reads too --
+ * the same convention SpaConfig.kt uses on Android: one config
+ * authored once, re-shaped per platform by this package.
  *
  * @param {import('./config').ArkwareConfig} config
  * @returns {string}
@@ -48,7 +44,7 @@ function renderShellConfig(config) {
   const nagTextMatches = (config.spa.nagHideTextMatches || []).join(",");
 
   return (
-    `# Generated from arkware.config.js by \`arkware-linux build\`.\n` +
+    `# Generated from arkware.config.js by \`arkware linux build\`.\n` +
     `# See linux-project/README.md on main for this file's format.\n` +
     `target_url=${config.spa.targetUrl || ""}\n` +
     `display_name=${config.spa.displayName}\n` +
@@ -98,8 +94,8 @@ function scaffold(config) {
  * the exact two commands linux-project/README.md documents for a
  * person building it by hand. Requires the system GTK3/WebKitGTK dev
  * packages `cmake` will look for via pkg-config; this function
- * doesn't install them (same "doesn't vendor the toolchain" stance
- * neutralino.js's build() takes toward `neu`).
+ * doesn't install them -- same "spawn the real toolchain, don't
+ * vendor or reimplement it" stance as the rest of this package.
  *
  * @param {string} outDir
  * @returns {boolean} true if both cmake steps exited 0
@@ -116,7 +112,7 @@ function build(outDir) {
     throw new Error(
       "Could not find `cmake` on PATH. Install cmake, pkg-config, and the " +
         "GTK3/WebKitGTK dev packages (see linux-project/README.md's " +
-        "Building section on main), then re-run `arkware-linux build`."
+        "Building section on main), then re-run `arkware linux build`."
     );
   }
   if (configure.status !== 0) {

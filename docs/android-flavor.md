@@ -1,8 +1,8 @@
 # Android packaging: config → Gradle flavor → CI build
 
-Neither `arkware-shell` nor `arkware-spa` builds an APK, on purpose:
-no Android SDK is bundled or assumed in this package. Android
-packaging stays a CI job on `main`
+`arkware` doesn't build an APK, on purpose: no Android SDK is bundled
+or assumed in this package. Android packaging stays a CI job on
+`main`
 ([`.github/workflows/android-build.yml`](https://github.com/Horizon-ARK-Studio/ARKware/blob/main/.github/workflows/android-build.yml)).
 What this package provides is the **config-authoring half** of that
 loop — turning `arkware.config.js` into the Gradle snippet CI needs.
@@ -10,7 +10,7 @@ loop — turning `arkware.config.js` into the Gradle snippet CI needs.
 ## Generate the snippet
 
 ```
-arkware-shell emit-android-flavor [--config <path>] [--out <path>]
+arkware android emit-flavor [--config <path>] [--out <path>]
 ```
 
 Requires, in `arkware.config.js`:
@@ -48,7 +48,8 @@ Keeping APK builds out of this package means:
 
 - No Android SDK / NDK weight added to `npm install`.
 - Contributors packaging a SPA don't need Android tooling locally at
-  all — only `neu` for the desktop CLIs.
+  all — only `cmake` + GTK3/WebKitGTK dev packages, and only if
+  they're also using `arkware linux build`.
 - The actual build environment (CI) is the one source of truth for
   what an APK looks like, rather than "works on my machine" Gradle
   state living in a dependency.

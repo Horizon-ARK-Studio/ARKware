@@ -13,7 +13,7 @@ fetch when there's no local git to use.
 
 ```json
 {
-  "ref": "61e6ba4f1cfed7b1a889e75467003063a466b909",
+  "ref": "94547cf05c85ac0e1dba53660fe4b29ff433994e",
   "description": "..."
 }
 ```
@@ -48,9 +48,9 @@ reviewed act, not something that happens automatically:
 1. Edit `ref` in [`arkware-runtime.json`](../arkware-runtime.json) to
    the new `main` commit SHA (or tag).
 2. Run `npm run sync` to pull the new content.
-3. Re-verify both CLIs still work against it — run
-   `arkware-shell build` / `arkware-spa build` against a real
-   `arkware.config.js` and confirm nothing broke, especially the
+3. Re-verify both commands still work against it — run
+   `arkware linux build` / `arkware android emit-flavor` against a
+   real `arkware.config.js` and confirm nothing broke, especially the
    Android flavor shape in
    [`src/lib/android.js`](../src/lib/android.js), which is written
    against the specific `build.gradle.kts` structure on `main` at

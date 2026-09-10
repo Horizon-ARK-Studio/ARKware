@@ -47,5 +47,5 @@ file is the source of truth, not this doc.
   you intend to ship against — see
   [`sync-and-versioning.md`](./sync-and-versioning.md).
 - Bump `version` in [`package.json`](../package.json).
-- Verify both CLIs (`arkware-shell build`, `arkware-spa build`, and
-  `emit-android-flavor`) still work against the pinned runtime.
+- Verify both commands (`arkware linux build` and `arkware android
+  emit-flavor`) still work against the pinned runtime.

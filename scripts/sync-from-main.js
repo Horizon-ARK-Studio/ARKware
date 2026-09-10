@@ -63,7 +63,7 @@ const FILES = {
   "docs/Foundational/PROBLEM-STATEMENT.md": "vendor/main/PROBLEM-STATEMENT.md",
   "android-project/app/build.gradle.kts": "vendor/main/android-build.gradle.kts",
   // v2's native C shell (see ROADMAP.md's v2 stage) -- pulled in full
-  // so `arkware-linux build` (src/lib/linux.js) has real source to
+  // so `arkware linux build` (src/lib/linux.js) has real source to
   // scaffold + `cmake --build`, instead of this package reimplementing
   // or reproducing main's C shell from scratch. Every file under
   // linux-project/ is listed individually rather than synced as a

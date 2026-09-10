@@ -1,6 +1,6 @@
 # `arkware.config.js` reference
 
-The single file both CLIs read. Copy
+The single file both commands read. Copy
 [`arkware.config.example.js`](../arkware.config.example.js) to your
 project root as `arkware.config.js`, or point `--config` at it
 elsewhere. Loaded by [`src/lib/config.js`](../src/lib/config.js).
@@ -15,61 +15,55 @@ module.exports = {
 
 ## `spa`
 
-| Field | Type | Used by | Notes |
-|---|---|---|---|
-| `targetUrl` | `string` | `arkware-shell` | Live URL the native window points at. Required for `arkware-shell build`. Ignored by `arkware-spa`. |
-| `buildDir` | `string` | `arkware-spa` | Local directory of your SPA's already-built static output (e.g. `./dist`). Required for `arkware-spa build`. Ignored by `arkware-shell`. |
-| `displayName` | `string` | both | Window titles, the Android media notification's subtitle/artist field, generated app metadata. |
-| `nagHideSelectors` | `string[]` | both (passed through to Android flavor emission and `arkware-linux`'s shell config) | CSS selectors for an "open our app" nag banner to hide, if the SPA has one. Mirrors `SpaConfig.kt` on the Android side. Empty by default — arkware won't guess selectors for you. |
-| `nagHideTextMatches` | `string[]` | both, same platforms as above | Same purpose as above, matched by text content instead of selector. |
+| Field | Type | Notes |
+|---|---|---|
+| `targetUrl` | `string` | Live URL the native window points at, and the value emitted as the Android `BuildConfig` field `TARGET_URL`. **Required** — `loadConfig` asserts this regardless of which command you run, since both read it. |
+| `displayName` | `string` | Window titles, the Android media notification's subtitle/artist field, generated app metadata. **Required.** |
+| `nagHideSelectors` | `string[]` | CSS selectors for an "open our app" nag banner to hide, if the SPA has one. Mirrors `SpaConfig.kt` on the Android side. Empty by default — arkware won't guess selectors for you. Passed through to both `arkware android emit-flavor` and `arkware linux build`. |
+| `nagHideTextMatches` | `string[]` | Same purpose as above, matched by text content instead of selector. Same commands as above. |
 
 ## `app`
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | `string` | Reverse-DNS id. Becomes the Neutralino `applicationId` and, on the Android side, an `applicationIdSuffix` of `.{platforms.android.flavor}` off `com.horizonarkstudio.arkware` — same convention as the existing `youtube`/`template` flavors. |
+| `id` | `string` | Reverse-DNS id. On the Android side, becomes an `applicationIdSuffix` of `.{platforms.android.flavor}` off `com.horizonarkstudio.arkware` — same convention as the existing `youtube`/`template` flavors. |
 | `version` | `string` | App version string. |
 | `icon` | `string` | Path to a square PNG/ICO used as the window/app icon. |
-
-## `platforms.desktop`
-
-| Field | Type | Notes |
-|---|---|---|
-| `enabled` | `boolean` | Must be `true` for either CLI's `build` command to run. |
-| `outDir` | `string` | Where the scaffolded Neutralino project (and `neu build`'s own output) is written. |
 
 ## `platforms.android`
 
 | Field | Type | Notes |
 |---|---|---|
-| `enabled` | `boolean` | Must be `true` for `arkware-shell emit-android-flavor`. |
+| `enabled` | `boolean` | Must be `true` for `arkware android emit-flavor`. |
 | `flavor` | `string` | Flavor name — becomes the `applicationIdSuffix` and the matrix entry `android-build.yml` needs. See [`android-flavor.md`](./android-flavor.md). |
 
-Neither CLI builds an APK regardless of this block; it only controls
-what `emit-android-flavor` writes. Actual APK builds happen in CI on
+This command doesn't build an APK regardless of this block; it only
+controls what `emit-flavor` writes. Actual APK builds happen in CI on
 `main`.
 
 ## `platforms.linux`
 
 | Field | Type | Notes |
 |---|---|---|
-| `enabled` | `boolean` | Must be `true` for `arkware-linux build`. **Defaults to `false`** — unlike `platforms.desktop`, this is opt-in. See [`linux-shell.md`](./linux-shell.md#why-platformslinuxenabled-defaults-to-false). |
+| `enabled` | `boolean` | Must be `true` for `arkware linux build`. **Defaults to `false`** — opt-in, since it needs a heavier local toolchain than `android emit-flavor`. See [`linux-shell.md`](./linux-shell.md#why-platformslinuxenabled-defaults-to-false). |
 | `outDir` | `string` | Where the copied `linux-project` source (and its own `build/` output) is written. |
 
-Not Neutralino-backed — `arkware-linux build` scaffolds and
-`cmake --build`s `main`'s real native C shell. See
-[`linux-shell.md`](./linux-shell.md) for the full picture, including
-what it needs installed locally (`cmake`, `pkg-config`, GTK3/WebKitGTK
-dev packages — not `neu`).
+Not Neutralino-backed — there's no Neutralino anywhere in this
+package. `arkware linux build` scaffolds and `cmake --build`s `main`'s
+real native C shell. See [`linux-shell.md`](./linux-shell.md) for the
+full picture, including what it needs installed locally (`cmake`,
+`pkg-config`, GTK3/WebKitGTK dev packages).
 
 ## What reads what
 
-| Command | `spa.*` fields it needs | `platforms.*` it needs |
-|---|---|---|
-| `arkware-shell build` | `targetUrl` | `desktop.enabled` |
-| `arkware-shell emit-android-flavor` | (none required) | `android.enabled`, `android.flavor` |
-| `arkware-spa build` | `buildDir` | `desktop.enabled` |
-| `arkware-linux build` | `targetUrl` | `linux.enabled` |
+`spa.targetUrl`, `spa.displayName`, `app.id`, and `app.version` are
+validated by `loadConfig` itself and required no matter which command
+you run. Beyond that:
 
-`app.*` fields are read by every command that scaffolds or emits
-output, since they identify the app regardless of platform.
+| Command | `platforms.*` it needs |
+|---|---|
+| `arkware android emit-flavor` | `android.enabled`, `android.flavor` |
+| `arkware linux build` | `linux.enabled` |
+
+`app.icon` is optional and, if set, resolved relative to
+`arkware.config.js`'s own directory.

@@ -5,27 +5,21 @@
 // it under -- same idea as android-project/app/build.gradle.kts's
 // per-flavor values (TARGET_URL, SPA_DISPLAY_NAME,
 // NAG_HIDE_SELECTORS, NAG_HIDE_TEXT_MATCHES), generalized so both
-// `arkware-shell` and `arkware-spa` (and, later, the Android flavor
-// emitted for CI) read one config instead of three separately
-// hand-maintained ones.
+// `arkware android emit-flavor` and `arkware linux build` read one
+// config instead of two separately hand-maintained ones.
 //
 // Copy this file to arkware.config.js at your project root and edit
-// it. Both CLIs look for arkware.config.js in the current working
-// directory by default, or a path passed via --config.
+// it. Both commands look for arkware.config.js in the current
+// working directory by default, or a path passed via --config.
 
 /** @type {import('./src/lib/config').ArkwareConfig} */
 module.exports = {
   // Everything about the target SPA itself.
   spa: {
-    // Required by `arkware-shell`: the live URL the native window
-    // points at. Not used by `arkware-spa`.
+    // Required. The live URL the native window (arkware linux build)
+    // and the generated Android BuildConfig field
+    // (arkware android emit-flavor) both point at.
     targetUrl: "https://example.com",
-
-    // Required by `arkware-spa`: a local directory containing the
-    // SPA's already-built static output (e.g. `dist/`, `build/`) to
-    // bundle into the app so it runs offline. Not used by
-    // `arkware-shell`.
-    buildDir: "./dist",
 
     // Shown in window titles, the Android media notification's
     // subtitle/artist field, and generated app metadata.
@@ -42,10 +36,9 @@ module.exports = {
   // App identity, shared across every platform this config packages
   // for.
   app: {
-    // Reverse-DNS id. Becomes the Neutralino applicationId and the
-    // Android applicationIdSuffix (as `.{platforms.android.flavor}`
-    // off of com.horizonarkstudio.arkware, same convention the
-    // existing youtube/template flavors use).
+    // Reverse-DNS id. Becomes the Android applicationIdSuffix (as
+    // `.{platforms.android.flavor}` off of com.horizonarkstudio.arkware,
+    // same convention the existing youtube/template flavors use).
     id: "com.example.exampleapp",
     version: "0.1.0",
     // Path to a square PNG/ICO, used as the window/app icon.
@@ -53,22 +46,11 @@ module.exports = {
   },
 
   platforms: {
-    // Consumed by both `arkware-spa build` and `arkware-shell build`.
-    // `neu` (the Neutralino CLI, https://neutralino.js.org) must
-    // already be installed -- these CLIs shell out to it rather than
-    // vendoring it.
-    desktop: {
-      enabled: true,
-      // Output directory the scaffolded Neutralino project (and
-      // `neu build`'s own dist/) is written to.
-      outDir: "./arkware-dist/desktop",
-    },
-
-    // APKs are NOT built by these CLIs -- per the repo root README,
+    // APKs are NOT built by this CLI -- per the repo root README,
     // Android packaging happens in GitHub Actions
     // (.github/workflows/android-build.yml on the `main` branch),
-    // not on a contributor's machine. What these CLIs *do* provide
-    // is `arkware-shell emit-android-flavor`, which turns this same
+    // not on a contributor's machine. What this CLI *does* provide
+    // is `arkware android emit-flavor`, which turns this same
     // config into a Gradle product-flavor snippet
     // (android-project/app/build.gradle.kts's productFlavors block)
     // ready to paste in and push, so CI picks it up. See this repo's
@@ -80,12 +62,12 @@ module.exports = {
       flavor: "exampleapp",
     },
 
-    // Consumed by `arkware-linux build`. Off by default (unlike
-    // platforms.desktop) since it's newer and requires system
-    // GTK3/WebKitGTK dev packages + cmake on PATH -- opt in once
-    // you've got those installed. Unlike platforms.desktop, this
-    // doesn't go through Neutralino at all: it scaffolds and builds
-    // main's actual v2 native C shell (linux-project). See
+    // Consumed by `arkware linux build`. Off by default -- newer,
+    // and requires system GTK3/WebKitGTK dev packages + cmake on
+    // PATH -- opt in once you've got those installed. This scaffolds
+    // and builds main's actual v2 native C shell (linux-project),
+    // the only desktop target main ships right now; no other desktop
+    // OS or shell technology is in the picture. See
     // docs/linux-shell.md for the full walkthrough.
     linux: {
       enabled: false,

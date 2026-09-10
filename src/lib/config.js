@@ -6,8 +6,7 @@ const fs = require("fs");
 /**
  * @typedef {Object} ArkwareConfig
  * @property {Object} spa
- * @property {string} [spa.targetUrl]
- * @property {string} [spa.buildDir]
+ * @property {string} spa.targetUrl
  * @property {string} spa.displayName
  * @property {string[]} [spa.nagHideSelectors]
  * @property {string[]} [spa.nagHideTextMatches]
@@ -16,9 +15,6 @@ const fs = require("fs");
  * @property {string} app.version
  * @property {string} [app.icon]
  * @property {Object} platforms
- * @property {Object} platforms.desktop
- * @property {boolean} platforms.desktop.enabled
- * @property {string} platforms.desktop.outDir
  * @property {Object} [platforms.android]
  * @property {boolean} platforms.android.enabled
  * @property {string} platforms.android.flavor
@@ -33,14 +29,10 @@ const DEFAULTS = {
     nagHideTextMatches: [],
   },
   platforms: {
-    desktop: {
-      enabled: true,
-      outDir: "./arkware-dist/desktop",
-    },
-    // Off by default, unlike platforms.desktop -- the Neutralino path
-    // stays the zero-config default so existing arkware.config.js
-    // files keep working unchanged; the native Linux shell is
-    // deliberately opt-in until it's had more real-world mileage.
+    // Off by default -- needs system GTK3/WebKitGTK dev packages +
+    // cmake on PATH; opt in once that toolchain is installed. This
+    // is the only desktop target this package (or main) ships right
+    // now -- Windows/macOS are "not yet staged" per main's ROADMAP.md.
     linux: {
       enabled: false,
       outDir: "./arkware-dist/linux",
@@ -54,11 +46,9 @@ const DEFAULTS = {
  * trace expected to be shown) for anything required that's missing.
  *
  * @param {string} [configPath] explicit path, else cwd/arkware.config.js
- * @param {"shell"|"spa"} mode which CLI is asking -- determines which
- *   spa.* field is required
  * @returns {ArkwareConfig}
  */
-function loadConfig(configPath, mode) {
+function loadConfig(configPath) {
   const resolved = path.resolve(
     process.cwd(),
     configPath || "arkware.config.js"
@@ -86,25 +76,11 @@ function loadConfig(configPath, mode) {
     config.spa && config.spa.displayName,
     "spa.displayName is required"
   );
-
-  if (mode === "shell") {
-    assert(
-      config.spa.targetUrl,
-      "spa.targetUrl is required for arkware-shell (the URL the native window points at)"
-    );
-  }
-  if (mode === "spa") {
-    assert(
-      config.spa.buildDir,
-      "spa.buildDir is required for arkware-spa (path to the SPA's built static output)"
-    );
-    const buildDirAbs = path.resolve(path.dirname(resolved), config.spa.buildDir);
-    assert(
-      fs.existsSync(buildDirAbs),
-      `spa.buildDir (${config.spa.buildDir}) does not exist -- build your SPA first`
-    );
-    config.spa.buildDir = buildDirAbs;
-  }
+  assert(
+    config.spa && config.spa.targetUrl,
+    "spa.targetUrl is required -- the live URL both `arkware android emit-flavor` " +
+      "(as TARGET_URL) and `arkware linux build` (as the window's target) point at"
+  );
 
   config.__configDir = path.dirname(resolved);
   if (config.app.icon) {

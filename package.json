@@ -1,7 +1,7 @@
 {
   "name": "@horizon-ark-studio/arkware",
-  "version": "0.2.1",
-  "description": "Package any SPA as a thin native shell. Three CLIs: arkware-shell and arkware-spa (Neutralino-backed), and arkware-linux (main's real native C shell -- GTK + WebKitGTK, no Neutralino, Linux desktop only for now).",
+  "version": "0.2.2",
+  "description": "Package any SPA as a thin native shell. One `arkware` CLI: `arkware android emit-flavor` authors Gradle config for main's Android WebView shell, `arkware linux build` scaffolds and cmake-builds main's real native C shell (GTK + WebKitGTK, Linux desktop only for now).",
   "license": "GPL-3.0-or-later",
   "author": "Horizon ARK Studio",
   "homepage": "https://github.com/Horizon-ARK-Studio/ARKware#readme",
@@ -14,14 +14,11 @@
   },
   "type": "commonjs",
   "bin": {
-    "arkware-spa": "./bin/arkware-spa.js",
-    "arkware-shell": "./bin/arkware-shell.js",
-    "arkware-linux": "./bin/arkware-linux.js"
+    "arkware": "./bin/arkware.js"
   },
   "files": [
     "bin",
     "src",
-    "templates",
     "scripts/sync-from-main.js",
     "scripts/ram-dist.sh",
     "arkware.config.example.js",
@@ -40,12 +37,12 @@
     "arkware",
     "spa",
     "native-shell",
-    "neutralino",
     "webview",
     "pwa",
     "desktop",
     "gtk",
     "webkitgtk",
-    "linux"
+    "linux",
+    "android"
   ]
 }
