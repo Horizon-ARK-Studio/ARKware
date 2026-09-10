@@ -73,16 +73,24 @@ arkware linux build
 
 Full walkthrough: [`docs/linux-shell.md`](docs/linux-shell.md).
 
-### `arkware android build` — Gradle flavor for CI
+### `arkware android build` — full local Android scaffold
 
-Doesn't build an APK — that's `main`'s job in CI. Turns
-`arkware.config.js` into a Gradle product-flavor snippet shaped like
-the existing `youtube`/`template` flavors in
-`android-project/app/build.gradle.kts`, ready to paste in and push.
+Scaffolds the full vendored `android-project` tree into
+`platforms.android.outDir` and splices a Gradle product-flavor block
+into its `build.gradle.kts` — the same thing `arkware linux build`
+does for the Linux shell, working the same way whether the flavor
+points at a live URL or bundles a local site's files (`--assets`).
+Doesn't run Gradle unless you pass `--build`.
 
 ```
 arkware android build
+arkware android build --assets ./dist   # bundle a local site instead
 ```
+
+CI (`.github/workflows/android-build.yml` on `main`) remains the
+actual release path; to get a locally-scaffolded flavor built there
+too, run `arkware android flavor-snippet` and paste its output into
+`main`'s own checkout.
 
 Full walkthrough: [`docs/android-flavor.md`](docs/android-flavor.md).
 
@@ -118,20 +126,25 @@ purpose as `SpaConfig.kt`'s fields on the Android side: hiding an
 
 ## Android packaging
 
-`arkware` doesn't build an APK — that stays a CI job
-([`.github/workflows/android-build.yml`](https://github.com/Horizon-ARK-Studio/ARKware/blob/main/.github/workflows/android-build.yml)
-on `main`), on purpose: no Android SDK is bundled or assumed here.
-What this package gives you is the config-authoring half of that
-loop:
-
 ```
 arkware android build
 ```
 
-turns the same `arkware.config.js` into a Gradle product-flavor
-snippet shaped like the existing `youtube`/`template` flavors in
-`android-project/app/build.gradle.kts` — paste it in, add the flavor
-name to the CI matrix, push, and CI builds the APK.
+scaffolds the same `arkware.config.js` into a full local
+`android-project` copy — a real, self-contained Gradle project with
+the new flavor already spliced into `build.gradle.kts` — regardless of
+whether that flavor points at a live URL or bundles a local site's
+assets. No Android SDK is required for that scaffold step; pass
+`--build` if you also want it compiled locally (needs a JDK +
+configured Android SDK on `PATH`).
+
+The actual release APK still comes from CI
+([`.github/workflows/android-build.yml`](https://github.com/Horizon-ARK-Studio/ARKware/blob/main/.github/workflows/android-build.yml)
+on `main`), which builds from `main`'s own checkout, not from this
+local scaffold. To get a flavor built there too, run
+`arkware android flavor-snippet` to get just the Gradle snippet, paste
+it into `android-project/app/build.gradle.kts` on `main`, add the
+flavor name to the CI matrix, and push.
 
 ## Publishing
 

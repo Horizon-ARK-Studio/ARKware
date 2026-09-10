@@ -13,11 +13,15 @@ Usage:
   arkware <command> <subcommand> [options]
 
 Commands:
-  android build          Gradle product-flavor config for main's CI to
-                          compile (no local build step)
-  android spa-native      Scaffold a local Android project bundling a
-                          local site (file:///android_asset/), optionally
-                          building it locally with a configured Android SDK
+  android build           Scaffold the full vendored android-project
+                          locally (live URL or bundled local assets --
+                          same either way), optionally building it with
+                          a configured Android SDK
+  android spa-native      Alias for \`android build --assets <path>\`:
+                          same full local scaffold, bundled assets required
+  android flavor-snippet  Gradle product-flavor snippet only, for pasting
+                          into main's checkout so CI builds it (no local
+                          scaffold)
   android spa-shell       Not yet supported -- see
                           docs/PROPOSAL-spa-shell-and-spa-native.md
   linux build             Scaffold + cmake-build main's native Linux shell
@@ -33,22 +37,33 @@ Run \`arkware <command> --help\` for a command's own usage.
 const HELP = {
   android: `arkware android -- Android shell packaging
 
-\`arkware android build\` does NOT compile an APK -- that's a CI job
-(.github/workflows/android-build.yml on main). "build" here means the
-same thing it means for \`arkware linux build\`'s scaffold half: turn
-arkware.config.js into the platform's own real input -- here, the
-productFlavors shape android-project/app/build.gradle.kts already
-hand-defines for the youtube/template flavors. Linux additionally
-compiles that input locally (\`cmake --build\`); Android's build is CI's
-job, so this command stops at authoring the config.
+\`arkware android build\` scaffolds the FULL vendored android-project
+locally into platforms.android.outDir -- the same thing \`arkware linux
+build\` does for linux-project. It works the same way regardless of
+whether the flavor points at a live URL (spa.targetUrl) or bundles a
+local site's files into app/src/main/assets/ (platforms.android
+.bundledAssets, or --assets on the command line): either way you get a
+real, self-contained Gradle project on disk with the flavor already
+spliced into build.gradle.kts. This does NOT compile an APK by
+default -- that's still a CI job (.github/workflows/android-build.yml
+on main) -- but pass --build to also run
+\`./gradlew assemble<Flavor>Debug\` locally afterward (needs a JDK +
+configured Android SDK on PATH), the same opt-in \`linux build\`
+doesn't need to offer since it always compiles.
 
-\`arkware android spa-native\` is different: it scaffolds the full
-vendored android-project into platforms.android.outDir, copies a local
-site's files into app/src/main/assets/, and splices a flavor pointed
-at file:///android_asset/index.html directly into the scaffolded
-build.gradle.kts -- no live URL, no CI round-trip needed. Pass --build
-to also run \`./gradlew assemble<Flavor>Debug\` locally afterward (needs
-a JDK + configured Android SDK on PATH).
+\`arkware android spa-native\` is the same command with bundled local
+assets required (an error if neither --assets nor
+platforms.android.bundledAssets is set) -- kept as its own name since
+"scaffold a fully offline app from a local site" is a distinct enough
+intent to spell out, even though it now shares its implementation with
+\`build\`.
+
+\`arkware android flavor-snippet\` is the old \`build\` behavior, kept
+under its own name: it does NOT scaffold anything locally, and instead
+writes just the Gradle product-flavor snippet to paste into
+android-project/app/build.gradle.kts on main's own checkout, for
+projects that only want CI to ever build the APK and have no interest
+in a local scaffold at all.
 
 \`spa-shell\` (point at a live URL, show an offline-fallback SVG when
 disconnected) isn't supported on Android yet -- see
@@ -56,22 +71,25 @@ docs/PROPOSAL-spa-shell-and-spa-native.md for exactly what's missing
 and why.
 
 Usage:
-  arkware android build [--config <path>] [--out <path>]
+  arkware android build [--config <path>] [--assets <path>] [--build]
   arkware android spa-native [--config <path>] [--assets <path>] [--build]
+  arkware android flavor-snippet [--config <path>] [--out <path>]
 
-Options (build):
-  --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
-  --out <path>      Output path (default: ./arkware-android-flavor.gradle.kts)
-  --help            Show this message
-
-Options (spa-native):
+Options (build / spa-native):
   --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
   --assets <path>   Local site directory (containing index.html) to bundle --
                      overrides platforms.android.bundledAssets.assetsDir.
-                     Either this or that config field is required.
+                     Required for spa-native; optional for build (omit it,
+                     and don't set platforms.android.bundledAssets either,
+                     to scaffold a flavor pointed at spa.targetUrl instead).
   --build           Also run \`./gradlew assemble<Flavor>Debug\` in the
                      scaffolded outDir after copying (needs a JDK + Android
                      SDK on PATH; not run by default)
+  --help            Show this message
+
+Options (flavor-snippet):
+  --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
+  --out <path>      Output path (default: ./arkware-android-flavor.gradle.kts)
   --help            Show this message
 
 If vendor/main/android-project is missing, run \`npm run sync\` first.
@@ -128,15 +146,22 @@ function runAndroid(args) {
     process.exit(1);
   }
 
-  if (sub === "spa-native") {
+  if (sub === "build" || sub === "spa-native") {
     const config = loadConfig(values.config);
+
     if (values.assets) {
       config.platforms.android.bundledAssets = {
         enabled: true,
         assetsDir: values.assets,
       };
     }
-    if (!config.platforms.android.bundledAssets || !config.platforms.android.bundledAssets.enabled) {
+
+    // spa-native's whole point is "bundle a local site" -- unlike plain
+    // `build`, it's an error for it to fall through to spa.targetUrl.
+    if (
+      sub === "spa-native" &&
+      (!config.platforms.android.bundledAssets || !config.platforms.android.bundledAssets.enabled)
+    ) {
       console.error(
         "arkware android spa-native: no local site to bundle.\n\n" +
           "Pass --assets <path> pointing at the directory containing your " +
@@ -146,9 +171,18 @@ function runAndroid(args) {
       process.exit(1);
     }
 
-    const { outDir, flavor } = android.scaffold(config);
+    // Same scaffold() call either way -- it already branches internally
+    // on config.platforms.android.bundledAssets to decide between a
+    // live-URL flavor and a bundled-assets one (see targetUrlOverride
+    // in src/lib/android.js), so `build` doesn't need to know or care
+    // which mode it's in, same as `linux build` doesn't branch on it.
+    const { outDir, assetsCopied, flavor } = android.scaffold(config);
     console.log(`Scaffolded native Android project at ${outDir}`);
-    console.log(`Flavor "${flavor}" bundled local assets -- WebView will load: file:///android_asset/index.html`);
+    console.log(
+      assetsCopied
+        ? `Flavor "${flavor}" bundled local assets -- WebView will load: file:///android_asset/index.html`
+        : `Flavor "${flavor}" points at: ${config.spa.targetUrl}`
+    );
 
     if (values.build) {
       const ok = android.build(outDir, flavor);
@@ -158,29 +192,31 @@ function runAndroid(args) {
     console.log(
       `To build locally: cd ${outDir} && ./gradlew assemble${capitalize(flavor)}Debug ` +
         `(or re-run with --build). CI (.github/workflows/android-build.yml) builds ` +
-        "from main's own checkout, not this scaffolded copy -- pushing this flavor " +
-        "there separately is still how a CI-built APK happens."
+        "from main's own checkout, not this scaffolded copy -- to also get this " +
+        "flavor built by CI, run `arkware android flavor-snippet` and paste its " +
+        "output into android-project/app/build.gradle.kts on main, then push."
     );
     return;
   }
 
-  if (sub !== "build") {
-    console.error(`Unknown subcommand: android ${sub}\n`);
-    console.log(HELP.android);
-    process.exit(1);
+  if (sub === "flavor-snippet") {
+    const config = loadConfig(values.config);
+    const out = android.writeFlavorSnippet(
+      config,
+      values.out || "./arkware-android-flavor.gradle.kts"
+    );
+    console.log(`Wrote Gradle product-flavor snippet to ${out}`);
+    console.log(
+      "Paste it into android-project/app/build.gradle.kts's productFlavors " +
+        "block, add the flavor name to the matrix in " +
+        ".github/workflows/android-build.yml, then push -- CI builds the APK."
+    );
+    return;
   }
 
-  const config = loadConfig(values.config);
-  const out = android.writeFlavorSnippet(
-    config,
-    values.out || "./arkware-android-flavor.gradle.kts"
-  );
-  console.log(`Wrote Gradle product-flavor snippet to ${out}`);
-  console.log(
-    "Paste it into android-project/app/build.gradle.kts's productFlavors " +
-      "block, add the flavor name to the matrix in " +
-      ".github/workflows/android-build.yml, then push -- CI builds the APK."
-  );
+  console.error(`Unknown subcommand: android ${sub}\n`);
+  console.log(HELP.android);
+  process.exit(1);
 }
 
 function capitalize(s) {

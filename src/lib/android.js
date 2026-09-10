@@ -49,7 +49,7 @@ function emitFlavorSnippet(config, opts = {}) {
       ? opts.targetUrlOverride
       : config.spa.targetUrl || "";
 
-  return `        // Generated from arkware.config.js by \`arkware android build\`.
+  return `        // Generated from arkware.config.js by \`arkware android flavor-snippet\`.
         // Paste this into productFlavors in android-project/app/build.gradle.kts,
         // then add "${flavor}" to the matrix in
         // .github/workflows/android-build.yml so CI builds it.
@@ -172,14 +172,12 @@ function insertFlavorIntoGradle(gradleSource, flavorSnippet) {
  * load it with no live URL at all (Feature A of
  * docs/PROPOSAL-spa-shell-and-spa-native.md's spa-native mode).
  *
- * This does NOT invoke Gradle -- unlike linux.js's scaffold()+build()
- * pair, actually compiling the APK stays CI's job
- * (.github/workflows/android-build.yml on main), same as today's
- * `arkware android build`. What this adds is a real local project
- * tree to scaffold *into*, which didn't exist before; wiring an
- * `arkware android spa-native` subcommand that calls this is left for
- * later (see bin/arkware.js's current "not supported yet" stub) --
- * this is the library-level half.
+ * This does NOT invoke Gradle itself -- like linux.js's scaffold(),
+ * compiling is a separate step (this module's own build(), called by
+ * `arkware android build`/`spa-native` only when --build is passed).
+ * CI (.github/workflows/android-build.yml on main) remains the actual
+ * release path either way; a local `--build` is for testing the
+ * scaffolded output, not for producing the APK main ships.
  *
  * @param {import('./config').ArkwareConfig} config
  * @returns {{outDir: string, assetsCopied: boolean, flavorSnippet: string}}
