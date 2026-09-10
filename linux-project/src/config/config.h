@@ -31,6 +31,17 @@ typedef struct {
   int nag_hide_selectors_count;
   char **nag_hide_text_matches;
   int nag_hide_text_matches_count;
+  /* Optional. An SVG (typically a `data:image/svg+xml,...` URI, but
+   * any value webview_bridge's JS can drop straight into an <img src>
+   * is fine) shown full-screen over the page while the browser
+   * considers the connection offline. NULL/empty means "don't inject
+   * an offline overlay for this SPA at all" -- same opt-in convention
+   * nag_hide_selectors/nag_hide_text_matches already use, and the
+   * same field name Android's SpaConfig.offlineFallbackSvg uses, so
+   * the two shells document this the same way even though they don't
+   * share code. Not comma-split like the nag_hide_* fields -- this is
+   * a single value, not a list. */
+  char *offline_fallback_svg;
 } ArkSpaConfig;
 
 /*

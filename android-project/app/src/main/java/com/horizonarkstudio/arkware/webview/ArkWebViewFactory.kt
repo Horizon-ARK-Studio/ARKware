@@ -2,6 +2,8 @@ package com.horizonarkstudio.arkware.webview
 
 import android.content.Context
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.horizonarkstudio.arkware.config.SpaConfig
@@ -90,6 +92,38 @@ object ArkWebViewFactory {
                     ArkScripts.nagHideJs(SpaConfig.nagHideSelectors, SpaConfig.nagHideTextMatches), null
                 )
                 view.evaluateJavascript(ArkScripts.mediaSessionJs(SpaConfig.displayName), null)
+                view.evaluateJavascript(ArkScripts.offlineOverlayJs(SpaConfig.offlineFallbackSvg), null)
+            }
+        }
+
+        override fun onReceivedError(
+            view: WebView,
+            request: WebResourceRequest,
+            error: WebResourceError
+        ) {
+            super.onReceivedError(view, request, error)
+            // Covers "the initial page never loaded at all" (no
+            // connectivity at launch) -- the one case
+            // ArkScripts.offlineOverlayJs's online/offline DOM-event
+            // listeners alone don't catch, since those only fire for a
+            // page that already reached the DOM and then lost its
+            // connection. Subframe failures (an ad iframe, a tracking
+            // pixel) are deliberately ignored -- only a failed *main
+            // frame* load means the SPA itself never came up. No
+            // ACCESS_NETWORK_STATE permission or ConnectivityManager
+            // involved: this reacts to the load failure WebView itself
+            // already reports, same "JS-only, no native connectivity
+            // polling for the base case" approach as the online/offline
+            // listeners.
+            if (SpaConfig.offlineFallbackSvg.isNotBlank() && request.isForMainFrame) {
+                ArkLogger.d(COMPONENT, "onReceivedError (main frame, code ${error.errorCode}) -- forcing offline overlay")
+                // The install script may not have run yet (onPageFinished
+                // never fired for a load that failed this early), so
+                // inject it before invoking the function it defines.
+                view.evaluateJavascript(ArkScripts.offlineOverlayJs(SpaConfig.offlineFallbackSvg), null)
+                view.evaluateJavascript(
+                    "window.__arkShowOfflineOverlay && window.__arkShowOfflineOverlay();", null
+                )
             }
         }
     }

@@ -29,6 +29,18 @@ object SpaConfig {
     val nagHideSelectors: List<String> = splitConfigList(BuildConfig.NAG_HIDE_SELECTORS)
     val nagHideTextMatches: List<String> = splitConfigList(BuildConfig.NAG_HIDE_TEXT_MATCHES)
 
+    /**
+     * An SVG (typically a `data:image/svg+xml,...` URI) shown
+     * full-screen over the page while the browser considers the
+     * connection offline -- see [ArkScripts.offlineOverlayJs]. A
+     * flavor that leaves this blank (the default for a newly
+     * scaffolded SPA) gets no offline overlay at all, same opt-in
+     * convention [nagHideSelectors]/[nagHideTextMatches] already use;
+     * it does not inherit any other SPA's fallback image. Not
+     * comma-split -- a single value, unlike the two lists above.
+     */
+    val offlineFallbackSvg: String = BuildConfig.OFFLINE_FALLBACK_SVG
+
     private fun splitConfigList(raw: String): List<String> =
         raw.split(",")
             .map { it.trim() }

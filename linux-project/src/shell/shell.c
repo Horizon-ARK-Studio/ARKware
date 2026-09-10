@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 #include "../logging/logging.h"
+#include "scripts.h"
 
 #define ARK_SHELL_TAG "shell"
 
@@ -46,6 +47,42 @@ ArkShell *ark_shell_create(const ArkSpaConfig *config, int debug) {
                           ARK_SHELL_DEFAULT_HEIGHT, WEBVIEW_HINT_NONE);
   if (err != WEBVIEW_ERROR_OK) {
     ark_log_warn(ARK_SHELL_TAG, "webview_set_size failed (code %d)", err);
+  }
+
+  /* webview_init() must run before webview_navigate() -- it installs
+   * the script to run on every subsequent page load, it doesn't
+   * retroactively run on one already loading. This is also this
+   * shell's first use of webview_init() at all: unlike Android's
+   * nagHideJs/evaluateJavascript precedent, nothing was injected here
+   * before the offline overlay.
+   *
+   * Reactive to the browser's own online/offline events only -- no
+   * native GTK network-state polling for this base case (see
+   * scripts.h). That covers "connection dropped after the page
+   * loaded"; it does NOT cover "the initial webview_navigate() below
+   * never reaches a server at all" (no connection at launch), since
+   * webview.h exposes no load-failure/error callback the way
+   * Android's WebViewClient.onReceivedError does -- webview_navigate's
+   * return code below only reports whether the call itself was
+   * well-formed, not whether the page actually loaded. Catching that
+   * case would mean reaching past webview.h into WebKitGTK's own
+   * signals directly (e.g. WebKitWebView's "load-failed"), which is a
+   * genuinely new dependency this shell doesn't have yet -- left as a
+   * follow-up, not assumed to already work. */
+  if (config->offline_fallback_svg) {
+    char *offline_overlay_js =
+        ark_scripts_offline_overlay_js(config->offline_fallback_svg);
+    if (offline_overlay_js) {
+      err = webview_init(handle, offline_overlay_js);
+      if (err != WEBVIEW_ERROR_OK) {
+        ark_log_warn(ARK_SHELL_TAG,
+                     "webview_init (offline overlay) failed (code %d)", err);
+      }
+      free(offline_overlay_js);
+    } else {
+      ark_log_warn(ARK_SHELL_TAG,
+                   "failed to build offline overlay JS -- skipping");
+    }
   }
 
   err = webview_navigate(handle, config->target_url);

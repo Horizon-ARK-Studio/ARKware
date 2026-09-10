@@ -87,7 +87,8 @@ static void free_list(char **items, int count) {
 static void read_config_file(const char *path, char **out_target_url,
                               char **out_display_name,
                               char **out_nag_selectors_raw,
-                              char **out_nag_text_matches_raw) {
+                              char **out_nag_text_matches_raw,
+                              char **out_offline_fallback_svg) {
   FILE *f = fopen(path, "r");
   if (!f) {
     ark_log_info(ARK_CONFIG_TAG,
@@ -119,6 +120,8 @@ static void read_config_file(const char *path, char **out_target_url,
       *out_nag_selectors_raw = ark_strdup(value);
     } else if (strcmp(key, "nag_hide_text_matches") == 0) {
       *out_nag_text_matches_raw = ark_strdup(value);
+    } else if (strcmp(key, "offline_fallback_svg") == 0) {
+      *out_offline_fallback_svg = ark_strdup(value);
     }
   }
 
@@ -130,9 +133,11 @@ ArkSpaConfig *ark_config_load(const char *path) {
   char *display_name = NULL;
   char *nag_selectors_raw = NULL;
   char *nag_text_matches_raw = NULL;
+  char *offline_fallback_svg = NULL;
 
   read_config_file(path ? path : ARK_CONFIG_DEFAULT_PATH, &target_url,
-                    &display_name, &nag_selectors_raw, &nag_text_matches_raw);
+                    &display_name, &nag_selectors_raw, &nag_text_matches_raw,
+                    &offline_fallback_svg);
 
   /* Env vars win over the file -- deliberate override path for
    * testing a second SPA without editing arkware.config. */
@@ -146,6 +151,11 @@ ArkSpaConfig *ark_config_load(const char *path) {
     free(display_name);
     display_name = ark_strdup(env_name);
   }
+  const char *env_offline_svg = getenv("ARKWARE_OFFLINE_FALLBACK_SVG");
+  if (env_offline_svg && env_offline_svg[0] != '\0') {
+    free(offline_fallback_svg);
+    offline_fallback_svg = ark_strdup(env_offline_svg);
+  }
 
   if (!target_url || target_url[0] == '\0') {
     ark_log_error(ARK_CONFIG_TAG,
@@ -155,6 +165,7 @@ ArkSpaConfig *ark_config_load(const char *path) {
     free(display_name);
     free(nag_selectors_raw);
     free(nag_text_matches_raw);
+    free(offline_fallback_svg);
     return NULL;
   }
 
@@ -170,6 +181,16 @@ ArkSpaConfig *ark_config_load(const char *path) {
       split_list(nag_selectors_raw, &config->nag_hide_selectors_count);
   config->nag_hide_text_matches = split_list(
       nag_text_matches_raw, &config->nag_hide_text_matches_count);
+  /* Not comma-split -- a single value, unlike the nag_hide_* fields.
+   * NULL/empty (no offline_fallback_svg configured) is a legitimate,
+   * common case: it means this SPA gets no offline overlay at all. */
+  config->offline_fallback_svg =
+      (offline_fallback_svg && offline_fallback_svg[0] != '\0')
+          ? offline_fallback_svg
+          : NULL;
+  if (!config->offline_fallback_svg) {
+    free(offline_fallback_svg);
+  }
 
   free(nag_selectors_raw);
   free(nag_text_matches_raw);
@@ -188,5 +209,6 @@ void ark_config_free(ArkSpaConfig *config) {
   free(config->display_name);
   free_list(config->nag_hide_selectors, config->nag_hide_selectors_count);
   free_list(config->nag_hide_text_matches, config->nag_hide_text_matches_count);
+  free(config->offline_fallback_svg);
   free(config);
 }

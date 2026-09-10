@@ -15,3 +15,9 @@ display_name=Example App
 # into the Linux bridge, kept here so the config shape matches).
 nag_hide_selectors=
 nag_hide_text_matches=
+
+# Optional. Shown full-screen over the page whenever the browser
+# fires an `offline` event, and cleared on `online` -- leave blank to
+# skip the offline overlay entirely for this SPA. Typically a
+# `data:image/svg+xml,...` URI; any value valid as an <img src> works.
+offline_fallback_svg=

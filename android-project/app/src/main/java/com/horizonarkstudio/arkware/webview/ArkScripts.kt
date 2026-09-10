@@ -235,6 +235,77 @@ object ArkScripts {
     private fun jsStringLiteral(value: String): String =
         "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'"
 
+    /**
+     * Shows/hides a full-screen offline-fallback overlay, reactive to
+     * the browser's own `online`/`offline` events -- no native
+     * ConnectivityManager polling for this base case (see
+     * PROPOSAL-spa-shell-and-spa-native.md). Also installs
+     * `window.__arkShowOfflineOverlay()` / `window.__arkHideOfflineOverlay()`
+     * on `window`, so [ArkWebViewFactory]'s `onReceivedError` override
+     * can force the overlay on for the "URL never loaded at all" case
+     * (first launch with no connectivity) that `online`/`offline`
+     * events alone don't cover.
+     *
+     * [svgDataUri] is dropped as-is into an `<img src="...">` --
+     * generally a `data:image/svg+xml,...` URI, but any valid `<img>`
+     * src works. Sourced from [com.horizonarkstudio.arkware.config.SpaConfig.offlineFallbackSvg],
+     * itself from the active Gradle product flavor's
+     * `OFFLINE_FALLBACK_SVG`. A flavor that leaves it blank (the
+     * default for a newly scaffolded SPA) gets an empty, harmless
+     * no-op script back -- same convention [nagHideJs] uses.
+     */
+    fun offlineOverlayJs(svgDataUri: String): String {
+        if (svgDataUri.isBlank()) return ""
+
+        val svgLiteral = jsStringLiteral(svgDataUri)
+
+        return """
+            (function() {
+                if (window.__arkOfflineOverlayInstalled) { return; }
+                window.__arkOfflineOverlayInstalled = true;
+
+                var OVERLAY_ID = 'ark-offline-overlay';
+                var SVG_SRC = $svgLiteral;
+
+                function ensureOverlay() {
+                    var el = document.getElementById(OVERLAY_ID);
+                    if (el) { return el; }
+                    el = document.createElement('div');
+                    el.id = OVERLAY_ID;
+                    el.style.cssText = 'position:fixed;inset:0;z-index:2147483647;'
+                        + 'display:none;align-items:center;justify-content:center;background:#000;';
+                    var img = document.createElement('img');
+                    img.src = SVG_SRC;
+                    img.style.cssText = 'max-width:60%;max-height:60%;';
+                    el.appendChild(img);
+                    (document.body || document.documentElement).appendChild(el);
+                    return el;
+                }
+
+                window.__arkShowOfflineOverlay = function() {
+                    ensureOverlay().style.display = 'flex';
+                };
+                window.__arkHideOfflineOverlay = function() {
+                    ensureOverlay().style.display = 'none';
+                };
+
+                window.addEventListener('offline', window.__arkShowOfflineOverlay);
+                window.addEventListener('online', window.__arkHideOfflineOverlay);
+
+                function checkInitialState() {
+                    if (navigator.onLine === false) {
+                        window.__arkShowOfflineOverlay();
+                    }
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', checkInitialState);
+                } else {
+                    checkInitialState();
+                }
+            })();
+        """
+    }
+
     const val MEDIA_CONTROL_PLAY_JS = """
         (function() {
             var v = document.querySelector('video');

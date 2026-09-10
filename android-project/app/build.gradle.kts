@@ -20,16 +20,17 @@ android {
     }
 
     // One flavor per target SPA. SpaConfig.kt is the single place
-    // that reads the four values set per flavor below (TARGET_URL,
-    // SPA_DISPLAY_NAME, NAG_HIDE_SELECTORS, NAG_HIDE_TEXT_MATCHES) --
-    // adding a new SPA means adding a new flavor here, never touching
-    // SpaConfig.kt, ArkScripts.kt, or any other shell code.
+    // that reads the values set per flavor below (TARGET_URL,
+    // SPA_DISPLAY_NAME, NAG_HIDE_SELECTORS, NAG_HIDE_TEXT_MATCHES,
+    // OFFLINE_FALLBACK_SVG) -- adding a new SPA means adding a new
+    // flavor here, never touching SpaConfig.kt, ArkScripts.kt, or any
+    // other shell code.
     flavorDimensions += "spa"
     productFlavors {
         // The case ARKtube originally proved on its own, single-purpose
         // Android build, reproduced here as just another flavor --
         // nothing in the generic shell knows this is "the YouTube
-        // build" beyond these four values and the applicationId.
+        // build" beyond these values and the applicationId.
         create("youtube") {
             dimension = "spa"
             applicationIdSuffix = ".youtube"
@@ -43,8 +44,14 @@ android {
             // not an inherited assumption.
             buildConfigField("String", "NAG_HIDE_SELECTORS", "\"\"")
             buildConfigField("String", "NAG_HIDE_TEXT_MATCHES", "\"\"")
+            // Left empty deliberately, same reasoning as the two nag
+            // fields above: a real offline-fallback SVG for YouTube
+            // has to be chosen/designed, not guessed here -- an empty
+            // value is a harmless no-op (see ArkScripts.offlineOverlayJs's
+            // own doc), not an inherited assumption.
+            buildConfigField("String", "OFFLINE_FALLBACK_SVG", "\"\"")
         }
-        // Copy this block, rename it, and fill in your own SPA's four
+        // Copy this block, rename it, and fill in your own SPA's
         // values to scaffold a new ARKware build -- this flavor is the
         // whole per-SPA surface area, and a working (if generic)
         // target so `./gradlew assembleDebug` has something to build
@@ -57,6 +64,7 @@ android {
             buildConfigField("String", "SPA_DISPLAY_NAME", "\"ARKware\"")
             buildConfigField("String", "NAG_HIDE_SELECTORS", "\"\"")
             buildConfigField("String", "NAG_HIDE_TEXT_MATCHES", "\"\"")
+            buildConfigField("String", "OFFLINE_FALLBACK_SVG", "\"\"")
         }
     }
 

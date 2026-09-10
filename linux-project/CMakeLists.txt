@@ -27,6 +27,7 @@ add_executable(arkware
   src/main.c
   src/webview_impl.cc
   src/shell/shell.c
+  src/shell/scripts.c
   src/webview_bridge/bridge.c
   src/config/config.c
   src/media/media.c
