@@ -48,4 +48,4 @@ file is the source of truth, not this doc.
   [`sync-and-versioning.md`](./sync-and-versioning.md).
 - Bump `version` in [`package.json`](../package.json).
 - Verify both commands (`arkware linux build` and `arkware android
-  emit-flavor`) still work against the pinned runtime.
+  build`) still work against the pinned runtime.

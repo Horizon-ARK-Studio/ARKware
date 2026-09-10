@@ -10,7 +10,7 @@ loop — turning `arkware.config.js` into the Gradle snippet CI needs.
 ## Generate the snippet
 
 ```
-arkware android emit-flavor [--config <path>] [--out <path>]
+arkware android build [--config <path>] [--out <path>]
 ```
 
 Requires, in `arkware.config.js`:

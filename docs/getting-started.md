@@ -14,7 +14,7 @@ the Android flavor shape, and the native Linux shell source
 [`sync-and-versioning.md`](./sync-and-versioning.md) for what that
 means in practice.
 
-Requires Node.js >= 18. `arkware android emit-flavor` needs nothing
+Requires Node.js >= 18. `arkware android build` needs nothing
 beyond that. `arkware linux build` additionally needs `cmake`,
 `pkg-config`, and GTK3/WebKitGTK dev packages on `PATH` (see
 [`linux-shell.md`](./linux-shell.md)) — you only need those if you're
@@ -56,7 +56,7 @@ Full field list: [`config-reference.md`](./config-reference.md).
   `arkware linux build` (real GTK+WebKitGTK binary, built with
   `cmake`; Linux-only for now).
 - **Author the Android Gradle flavor** so `main`'s CI builds an APK →
-  `arkware android emit-flavor` (does not build the APK itself).
+  `arkware android build` (does not build the APK itself).
 
 Both are covered in full in [`cli-reference.md`](./cli-reference.md).
 The short version:
@@ -64,7 +64,7 @@ The short version:
 ```
 npx arkware linux build
 # or
-npx arkware android emit-flavor
+npx arkware android build
 ```
 
 `arkware linux build` copies `main`'s actual v2 native C shell source
@@ -79,7 +79,7 @@ either — that's a CI job on `main`. This package only emits the
 config half:
 
 ```
-npx arkware android emit-flavor
+npx arkware android build
 ```
 
 See [`android-flavor.md`](./android-flavor.md) for what to do with

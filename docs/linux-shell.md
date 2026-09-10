@@ -15,7 +15,7 @@ and this is that shell for Linux, the only desktop target either
 `arkware linux build` produces a `cmake`-built native binary linked
 against the system's own `libgtk-3` / `libwebkit2gtk` — a real
 dependency (`cmake` + `pkg-config` + GTK3/WebKitGTK dev headers) that
-`arkware android emit-flavor` doesn't need at all. Keeping it as its
+`arkware android build` doesn't need at all. Keeping it as its
 own subcommand, rather than a flag on `android`, makes what's
 actually being built, and what it depends on, obvious from the
 command name alone.
@@ -63,7 +63,7 @@ What it does, in order:
    `arkware.config.js`) into the copied project, from
    `spa.targetUrl` / `spa.displayName` / `spa.nagHideSelectors` /
    `spa.nagHideTextMatches` — the same field values `android
-   emit-flavor` reads, reshaped for this platform's own config format
+   build` reads, reshaped for this platform's own config format
    instead of Gradle `BuildConfig` fields.
 4. Runs `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release` then
    `cmake --build build` inside the copied project — the exact two
@@ -76,7 +76,7 @@ On success, the binary is at
 ## Why `platforms.linux.enabled` defaults to `false`
 
 Even though this is the only desktop target this package ships,
-`android emit-flavor` needs nothing beyond Node.js, while `linux
+`android build` needs nothing beyond Node.js, while `linux
 build` needs a heavier local toolchain (system GTK3/WebKitGTK
 headers, `cmake`, `pkg-config`). Defaulting `platforms.linux.enabled`
 to `false` keeps `npm install` + config authoring frictionless for
@@ -101,4 +101,4 @@ content, config-driven target URL. It does not (yet) expose:
 See also [`config-reference.md`](./config-reference.md) for the full
 `platforms.linux` field list, and
 [`cli-reference.md`](./cli-reference.md) for `arkware linux build`'s
-full flag reference alongside `arkware android emit-flavor`.
+full flag reference alongside `arkware android build`.

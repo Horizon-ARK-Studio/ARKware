@@ -73,7 +73,7 @@ arkware linux build
 
 Full walkthrough: [`docs/linux-shell.md`](docs/linux-shell.md).
 
-### `arkware android emit-flavor` — Gradle flavor for CI
+### `arkware android build` — Gradle flavor for CI
 
 Doesn't build an APK — that's `main`'s job in CI. Turns
 `arkware.config.js` into a Gradle product-flavor snippet shaped like
@@ -81,7 +81,7 @@ the existing `youtube`/`template` flavors in
 `android-project/app/build.gradle.kts`, ready to paste in and push.
 
 ```
-arkware android emit-flavor
+arkware android build
 ```
 
 Full walkthrough: [`docs/android-flavor.md`](docs/android-flavor.md).
@@ -125,7 +125,7 @@ What this package gives you is the config-authoring half of that
 loop:
 
 ```
-arkware android emit-flavor
+arkware android build
 ```
 
 turns the same `arkware.config.js` into a Gradle product-flavor

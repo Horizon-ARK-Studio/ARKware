@@ -13,9 +13,13 @@ Usage:
   arkware <command> <subcommand> [options]
 
 Commands:
-  android emit-flavor   Gradle product-flavor snippet for android-project's
-                         build.gradle.kts (main builds the APK in CI)
-  linux build            Scaffold + cmake-build main's native Linux shell
+  android build         Gradle product-flavor config for main's CI to
+                         compile (no local build step)
+  android spa-shell      Not yet supported -- see
+                         docs/PROPOSAL-spa-shell-and-spa-native.md
+  android spa-native     Not yet supported -- see
+                         docs/PROPOSAL-spa-shell-and-spa-native.md
+  linux build             Scaffold + cmake-build main's native Linux shell
                          (GTK + WebKitGTK)
 
 Options:
@@ -26,16 +30,25 @@ Run \`arkware <command> --help\` for a command's own usage.
 `;
 
 const HELP = {
-  android: `arkware android -- Gradle product-flavor authoring for main's Android shell
+  android: `arkware android -- Android shell packaging (Gradle flavor authoring)
 
-No APK is built here -- that's a CI job
-(.github/workflows/android-build.yml on main). This turns
-arkware.config.js into the same productFlavors shape
-android-project/app/build.gradle.kts already hand-defines for the
-youtube/template flavors.
+\`arkware android build\` does NOT compile an APK -- that's a CI job
+(.github/workflows/android-build.yml on main). "build" here means the
+same thing it means for \`arkware linux build\`'s scaffold half: turn
+arkware.config.js into the platform's own real input -- here, the
+productFlavors shape android-project/app/build.gradle.kts already
+hand-defines for the youtube/template flavors. Linux additionally
+compiles that input locally (\`cmake --build\`); Android's build is CI's
+job, so this command stops at authoring the config.
+
+\`spa-shell\` (point at a live URL, show an offline-fallback SVG when
+disconnected) and \`spa-native\` (bundle a local site, no live URL at
+all) aren't supported on Android yet -- see
+docs/PROPOSAL-spa-shell-and-spa-native.md for exactly what's missing
+and why.
 
 Usage:
-  arkware android emit-flavor [--config <path>] [--out <path>]
+  arkware android build [--config <path>] [--out <path>]
 
 Options:
   --config <path>   Path to arkware.config.js (default: ./arkware.config.js)
@@ -79,7 +92,20 @@ function runAndroid(args) {
   }
 
   const sub = positionals[0];
-  if (sub !== "emit-flavor") {
+
+  if (sub === "spa-shell" || sub === "spa-native") {
+    console.error(
+      `arkware android ${sub}: not supported yet.\n\n` +
+        "Android currently only has `arkware android build`, which " +
+        "authors a Gradle flavor for main's CI to compile -- it doesn't " +
+        "point the shell at a bundled local site or an offline-fallback " +
+        "SVG. See docs/PROPOSAL-spa-shell-and-spa-native.md for exactly " +
+        "what's missing and why, on both platforms."
+    );
+    process.exit(1);
+  }
+
+  if (sub !== "build") {
     console.error(`Unknown subcommand: android ${sub}\n`);
     console.log(HELP.android);
     process.exit(1);

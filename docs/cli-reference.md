@@ -11,7 +11,7 @@ arkware <command> <subcommand> [options]
 Every subcommand supports `--help`; `arkware --version` prints the
 installed `@horizon-ark-studio/arkware` version and exits.
 
-## `arkware android emit-flavor`
+## `arkware android build`
 
 Writes a Gradle product-flavor snippet, shaped like the existing
 `youtube`/`template` flavors in
@@ -22,7 +22,7 @@ into `productFlavors`, add the flavor name to the CI matrix in
 walkthrough: [`android-flavor.md`](./android-flavor.md).
 
 ```
-arkware android emit-flavor [--config <path>] [--out <path>]
+arkware android build [--config <path>] [--out <path>]
 arkware android --help
 ```
 
@@ -35,6 +35,20 @@ Requires `platforms.android.enabled: true` and `platforms.android.flavor`.
 | `--config <path>` | `./arkware.config.js` | Config file to load |
 | `--out <path>` | `./arkware-android-flavor.gradle.kts` | Where to write the snippet |
 | `--help` | — | Print usage and exit |
+
+---
+
+## `arkware android spa-shell` / `arkware android spa-native`
+
+Recognized, but **not implemented yet**. `linux build` scaffolds and
+compiles in one step; Android's equivalents — pointing the shell at a
+live URL with an offline-fallback SVG (`spa-shell`), or bundling a
+local site with no live URL at all (`spa-native`) — need real
+capability that doesn't exist on `main`'s Android shell today. Running
+either prints an explanation and exits 1 rather than a bare "unknown
+subcommand" error. See
+[`PROPOSAL-spa-shell-and-spa-native.md`](./PROPOSAL-spa-shell-and-spa-native.md)
+for exactly what's missing, on both platforms, and why.
 
 ---
 
@@ -99,6 +113,11 @@ On success, the built binary is at
 - **No `arkware.config.js` found** — pass `--config <path>` or copy
   [`arkware.config.example.js`](../arkware.config.example.js) to your
   project root first (see [`getting-started.md`](./getting-started.md)).
-- **`Unknown command`** / **`Unknown subcommand`** — only `android
-  emit-flavor` and `linux build` exist. `arkware --help` (or
-  `arkware <command> --help`) lists what's actually available.
+- **`Unknown command`** / **`Unknown subcommand`** — `android build`
+  and `linux build` are the only commands that do real work.
+  `android spa-shell`/`android spa-native` are recognized but print a
+  "not supported yet" message (see
+  [`android-flavor.md`](./android-flavor.md) and
+  [`PROPOSAL-spa-shell-and-spa-native.md`](./PROPOSAL-spa-shell-and-spa-native.md))
+  rather than the generic unknown-subcommand error. `arkware --help`
+  (or `arkware <command> --help`) lists what's actually available.

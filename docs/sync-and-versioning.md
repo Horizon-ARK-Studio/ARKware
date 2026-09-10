@@ -49,7 +49,7 @@ reviewed act, not something that happens automatically:
    the new `main` commit SHA (or tag).
 2. Run `npm run sync` to pull the new content.
 3. Re-verify both commands still work against it — run
-   `arkware linux build` / `arkware android emit-flavor` against a
+   `arkware linux build` / `arkware android build` against a
    real `arkware.config.js` and confirm nothing broke, especially the
    Android flavor shape in
    [`src/lib/android.js`](../src/lib/android.js), which is written

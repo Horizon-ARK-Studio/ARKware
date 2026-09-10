@@ -27,7 +27,7 @@ function emitFlavorSnippet(config) {
   const nagSelectors = (config.spa.nagHideSelectors || []).join(",");
   const nagTextMatches = (config.spa.nagHideTextMatches || []).join(",");
 
-  return `        // Generated from arkware.config.js by \`arkware android emit-flavor\`.
+  return `        // Generated from arkware.config.js by \`arkware android build\`.
         // Paste this into productFlavors in android-project/app/build.gradle.kts,
         // then add "${flavor}" to the matrix in
         // .github/workflows/android-build.yml so CI builds it.

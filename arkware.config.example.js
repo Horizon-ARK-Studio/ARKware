@@ -5,7 +5,7 @@
 // it under -- same idea as android-project/app/build.gradle.kts's
 // per-flavor values (TARGET_URL, SPA_DISPLAY_NAME,
 // NAG_HIDE_SELECTORS, NAG_HIDE_TEXT_MATCHES), generalized so both
-// `arkware android emit-flavor` and `arkware linux build` read one
+// `arkware android build` and `arkware linux build` read one
 // config instead of two separately hand-maintained ones.
 //
 // Copy this file to arkware.config.js at your project root and edit
@@ -18,7 +18,7 @@ module.exports = {
   spa: {
     // Required. The live URL the native window (arkware linux build)
     // and the generated Android BuildConfig field
-    // (arkware android emit-flavor) both point at.
+    // (arkware android build) both point at.
     targetUrl: "https://example.com",
 
     // Shown in window titles, the Android media notification's
@@ -50,7 +50,7 @@ module.exports = {
     // Android packaging happens in GitHub Actions
     // (.github/workflows/android-build.yml on the `main` branch),
     // not on a contributor's machine. What this CLI *does* provide
-    // is `arkware android emit-flavor`, which turns this same
+    // is `arkware android build`, which turns this same
     // config into a Gradle product-flavor snippet
     // (android-project/app/build.gradle.kts's productFlavors block)
     // ready to paste in and push, so CI picks it up. See this repo's

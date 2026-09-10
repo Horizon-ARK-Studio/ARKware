@@ -78,7 +78,7 @@ function loadConfig(configPath) {
   );
   assert(
     config.spa && config.spa.targetUrl,
-    "spa.targetUrl is required -- the live URL both `arkware android emit-flavor` " +
+    "spa.targetUrl is required -- the live URL both `arkware android build` " +
       "(as TARGET_URL) and `arkware linux build` (as the window's target) point at"
   );
 
